@@ -1,6 +1,5 @@
 
-void ampMacro(TString volt = "200"){
-    
+void ampMacro(TString volt = "200", bool local = false){
     TString num;
     if (volt == "200") num = "274";
     else if (volt == "210") num = "271";
@@ -26,7 +25,8 @@ void ampMacro(TString volt = "200"){
 
             if (ifile.eof()) break;
 
-            chain->Add("../AC_LGAD-data/"+line);
+            if (local) line = "../AC_LGAD-data/"+line;
+            chain->Add(line);
             counter++;
         }
         ifile.close();
