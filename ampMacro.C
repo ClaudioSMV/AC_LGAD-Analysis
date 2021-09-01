@@ -70,20 +70,30 @@ void ampMacro(TString volt = "200", bool local = false){
         if (channel!=0) histxy_st1->Add(histxy);
 
         // Amp plot regarding channel only
-        if (channel==0) continue;
-        float x_mean = histxy->GetMean(1);
-        float x_std = histxy->GetStdDev(1);
-        float y_mean = histxy->GetMean(2);
-        float y_std = histxy->GetStdDev(2);
+        if (channel==0){
+            float x_mean = histxy->GetMean(1);
+            float x_std = histxy->GetStdDev(1);
+            float y_mean = histxy->GetMean(2);
+            float y_std = histxy->GetStdDev(2);
 
-        float ch_limits[4] = {x_mean-x_std, x_mean+x_std, y_mean-y_std, y_mean+y_std};
+            float ch_limits[4] = {x_mean-x_std, x_mean+x_std, y_mean-y_std, y_mean+y_std};
 
-        auto htitleamp_chcut = Form("amp[%i] only channel;amp[%i] [mV];Counts",channel,channel);
-        TH1F *histamp_chcut = new TH1F(Form("amp%i_chcut",channel),htitleamp_chcut,100,0,0);
-        histamp_chcut->SetLineColor(kRed);
-        TCut ch_cut = Form("x_dut[0]>%f && x_dut[0]<%f && y_dut[0]>%f && y_dut[0]<%f",ch_limits[0],
-                           ch_limits[1],ch_limits[2],ch_limits[3]);
-        chain->Draw(Form("amp[%i]>>amp%i_chcut",channel,channel),ampCut+ch_cut); // && amp[%i]<100
+            auto htitleamp_chcut = Form("amp[%i] only channel;amp[%i] [mV];Counts",channel,channel);
+            TH1F *histamp_chcut = new TH1F(Form("amp%i_chcut",channel),htitleamp_chcut,100,0,0);
+            histamp_chcut->SetLineColor(kRed);
+            TCut ch_cut = Form("x_dut[0]>%f && x_dut[0]<%f && y_dut[0]>%f && y_dut[0]<%f",ch_limits[0],
+                            ch_limits[1],ch_limits[2],ch_limits[3]);
+            chain->Draw(Form("amp[%i]>>amp%i_chcut",channel,channel),ampCut+ch_cut);
+        }
+
+        // Time resolution
+        auto htitle_tRes = Form("#Delta t = time[7] - time[%i];#Delta t [s];Counts",channel);
+        TH1F *hist_tRes = new TH1F(Form("tRes%i",channel),htitle_tRes,100,0,0);
+        chain->Draw(Form("LP2_20[7]-LP2_20[%i]>>tRes%i",channel,channel),
+                    Form("LP2_20[%i]!=0 && LP2_20[7]!=0",channel));
+        TH1F *hist_tRes2 = new TH1F(Form("tRes%i2",channel),htitle_tRes,100,9.5e-9,11.5e-9);
+        chain->Draw(Form("LP2_20[7]-LP2_20[%i]>>tRes%i2",channel,channel),
+                    Form("LP2_20[%i]!=0 && LP2_20[7]!=0",channel));
     }
 
     // Close and save!
