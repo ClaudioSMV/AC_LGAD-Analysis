@@ -43,7 +43,7 @@ void ampMacro(TString volt = "200", bool local = false){
     std::cout << "Total number of entries: " << Nentries << std::endl;
 
     // Amp threshold value and position of wires 
-    int amp_low_cut[7] = {50, 50, 50, 60, 60, 60, 60};
+    int amp_low_cut[7] = {60, 60, 60, 70, 70, 70, 70};
     float xy_position[4] = {-1.1, 1.5, 9.5, 12.2}; // {x_min, x_max, y_min, y_max}
 
     TH2F *histxy_st0 = new TH2F("histxy_st0","Stack of channels 0 to 6",100,xy_position[0],xy_position[1],
@@ -52,14 +52,12 @@ void ampMacro(TString volt = "200", bool local = false){
                                 10,xy_position[2],xy_position[3]);
 
     for (int channel=0; channel<7; channel++){
+        // Simple amp plot
         auto htitleamp = Form("amp[%i];amp[%i] [mV];Counts",channel,channel);
         TH1F *histamp = new TH1F(Form("amp%i",channel),htitleamp,100,0,0);
         chain->Draw(Form("amp[%i]>>amp%i",channel,channel),Form("amp[%i]>0",channel)); // && amp[%i]<100
-        // float cont = histamp->GetBinContent(histamp->FindBin(amp_low_cut[channel]));
-        // TLine *line = new TLine(amp_low_cut[channel],0,amp_low_cut[channel],cont);
-        // line->SetLineColor(kRed);
-        // line->Draw();
 
+        // x_dut vs y_dut
         TCut xCut = Form("x_dut[0]>%.1f && x_dut[0]<%.1f",xy_position[0],xy_position[1]);
         TCut yCut = Form("y_dut[0]>%.1f && y_dut[0]<%.1f",xy_position[2],xy_position[3]);
         TCut ampCut = Form("amp[%i]>%i",channel,amp_low_cut[channel]);
@@ -70,6 +68,22 @@ void ampMacro(TString volt = "200", bool local = false){
         chain->Draw(Form("y_dut[0]:x_dut[0]>>ampxy%i",channel),xCut+yCut+ampCut,"COLZ");
         histxy_st0->Add(histxy);
         if (channel!=0) histxy_st1->Add(histxy);
+
+        // Amp plot regarding channel only
+        if (channel==0) continue;
+        float x_mean = histxy->GetMean(1);
+        float x_std = histxy->GetStdDev(1);
+        float y_mean = histxy->GetMean(2);
+        float y_std = histxy->GetStdDev(2);
+
+        float ch_limits[4] = {x_mean-x_std, x_mean+x_std, y_mean-y_std, y_mean+y_std};
+
+        auto htitleamp_chcut = Form("amp[%i] only channel;amp[%i] [mV];Counts",channel,channel);
+        TH1F *histamp_chcut = new TH1F(Form("amp%i_chcut",channel),htitleamp_chcut,100,0,0);
+        histamp_chcut->SetLineColor(kRed);
+        TCut ch_cut = Form("x_dut[0]>%f && x_dut[0]<%f && y_dut[0]>%f && y_dut[0]<%f",ch_limits[0],
+                           ch_limits[1],ch_limits[2],ch_limits[3]);
+        chain->Draw(Form("amp[%i]>>amp%i_chcut",channel,channel),ampCut+ch_cut); // && amp[%i]<100
     }
 
     // Close and save!
