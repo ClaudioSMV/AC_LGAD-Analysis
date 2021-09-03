@@ -45,6 +45,8 @@ void ampMacro(TString volt = "200", bool local = false){
     // Amp threshold value and position of wires 
     int amp_low_cut[7] = {60, 60, 60, 70, 70, 70, 70};
     float xy_position[4] = {-1.1, 1.5, 9.5, 12.2}; // {x_min, x_max, y_min, y_max}
+    float ch_limits[6][4] = {{0.28, 0.43, 10.0, 11.6}, {0.18, 0.30, 10, 11.6}, {0.09, 0.22, 10, 11.6},
+                            {-0.01, 0.12, 10.0, 11.6}, {-0.11, 0.01, 10, 11.6}, {-0.21, -0.09, 10, 11.6}};
 
     TH1F *hamp_Tot = new TH1F("amp_Tot","amp for all channels;amp [mV];Counts",400,0,400);
     // TH2F *histxy_st0 = new TH2F("histxy_st0","Stack of channels 0 to 6",100,xy_position[0],xy_position[1],
@@ -73,19 +75,19 @@ void ampMacro(TString volt = "200", bool local = false){
 
         // Amp plot regarding channel only
         if (channel!=0){
-            float x_mean = histxy->GetMean(1);
-            float x_std = histxy->GetStdDev(1);
-            float y_mean = histxy->GetMean(2);
-            float y_std = histxy->GetStdDev(2);
+            // float x_mean = histxy->GetMean(1);
+            // float x_std = histxy->GetStdDev(1);
+            // float y_mean = histxy->GetMean(2);
+            // float y_std = histxy->GetStdDev(2);
 
-            float ch_limits[4] = {x_mean-x_std, x_mean+x_std, y_mean-y_std, y_mean+y_std};
+            // float ch_limits[4] = {x_mean-x_std, x_mean+x_std, y_mean-y_std, y_mean+y_std};
 
             auto htitleamp_chcut = Form("amp[%i] only channel;amp[%i] [mV];Counts",channel,channel);
-            TH1F *histamp_chcut = new TH1F(Form("amp%i_chcut",channel),htitleamp_chcut,100,0,0);
+            TH1F *histamp_chcut = new TH1F(Form("amp%i_chcut",channel),htitleamp_chcut,400,0,400);
             histamp_chcut->SetLineColor(kRed);
-            TCut ch_cut = Form("x_dut[0]>%f && x_dut[0]<%f && y_dut[0]>%f && y_dut[0]<%f",ch_limits[0],
-                            ch_limits[1],ch_limits[2],ch_limits[3]);
-            chain->Draw(Form("amp[%i]>>amp%i_chcut",channel,channel),ampCut+ch_cut);
+            TCut ch_cut = Form("x_dut[0]>%f && x_dut[0]<%f && y_dut[0]>%f && y_dut[0]<%f",ch_limits[channel][0],
+                            ch_limits[channel][1],ch_limits[channel][2],ch_limits[channel][3]);
+            chain->Draw(Form("amp[%i]>>amp%i_chcut",channel,channel),Form("amp[%i]>0",channel)+ch_cut);
         }
 
         // Time resolution
