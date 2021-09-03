@@ -46,16 +46,18 @@ void ampMacro(TString volt = "200", bool local = false){
     int amp_low_cut[7] = {60, 60, 60, 70, 70, 70, 70};
     float xy_position[4] = {-1.1, 1.5, 9.5, 12.2}; // {x_min, x_max, y_min, y_max}
 
-    TH2F *histxy_st0 = new TH2F("histxy_st0","Stack of channels 0 to 6",100,xy_position[0],xy_position[1],
-                                10,xy_position[2],xy_position[3]);
+    TH1F *hamp_Tot = new TH1F("amp_Tot","amp for all channels;amp [mV];Counts",400,0,400);
+    // TH2F *histxy_st0 = new TH2F("histxy_st0","Stack of channels 0 to 6",100,xy_position[0],xy_position[1],
+    //                            10,xy_position[2],xy_position[3]);
     TH2F *histxy_st1 = new TH2F("histxy_st1","Stack of channels 1 to 6",100,xy_position[0],xy_position[1],
                                 10,xy_position[2],xy_position[3]);
 
     for (int channel=0; channel<7; channel++){
         // Simple amp plot
         auto htitleamp = Form("amp[%i];amp[%i] [mV];Counts",channel,channel);
-        TH1F *histamp = new TH1F(Form("amp%i",channel),htitleamp,100,0,0);
+        TH1F *histamp = new TH1F(Form("amp%i",channel),htitleamp,400,0,400);
         chain->Draw(Form("amp[%i]>>amp%i",channel,channel),Form("amp[%i]>0",channel)); // && amp[%i]<100
+        if (channel!=0) hamp_Tot->Add(histamp);
 
         // x_dut vs y_dut
         TCut xCut = Form("x_dut[0]>%.1f && x_dut[0]<%.1f",xy_position[0],xy_position[1]);
@@ -66,11 +68,11 @@ void ampMacro(TString volt = "200", bool local = false){
         TH2F *histxy = new TH2F(Form("ampxy%i",channel),htitlexy,100,xy_position[0],xy_position[1],
                                 10,xy_position[2],xy_position[3]);
         chain->Draw(Form("y_dut[0]:x_dut[0]>>ampxy%i",channel),xCut+yCut+ampCut,"COLZ");
-        histxy_st0->Add(histxy);
+        // histxy_st0->Add(histxy);
         if (channel!=0) histxy_st1->Add(histxy);
 
         // Amp plot regarding channel only
-        if (channel==0){
+        if (channel!=0){
             float x_mean = histxy->GetMean(1);
             float x_std = histxy->GetStdDev(1);
             float y_mean = histxy->GetMean(2);
