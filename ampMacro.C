@@ -89,8 +89,8 @@ void ampMacro(TString volt = "200", bool local = false){
 
         if (channel!=0 && channel!=7){
             // Amp plot regarding channel only
-            TCut xch_cut = Form("x_dut[0]>%f && x_dut[0]<%f",ch_limits[channel][0],ch_limits[channel][1]);
-            TCut ych_cut = Form("y_dut[0]>%f && y_dut[0]<%f",ch_limits[channel][2],ch_limits[channel][3]);
+            TCut xch_cut = Form("x_dut[0]>%f && x_dut[0]<%f",ch_limits[channel-1][0],ch_limits[channel-1][1]);
+            TCut ych_cut = Form("y_dut[0]>%f && y_dut[0]<%f",ch_limits[channel-1][2],ch_limits[channel-1][3]);
             auto htitleamp_chcut = Form("amp[%i] only channel;amp[%i] [mV];Counts",channel,channel);
             TH1F *histamp_chcut = new TH1F(Form("amp%i_chcut",channel),htitleamp_chcut,400,0,400);
             histamp_chcut->SetLineColor(kRed);
