@@ -52,16 +52,16 @@ void ampMacro(TString volt = "200", bool local = false){
     TH1F *hamp_Tot = new TH1F("amp_Tot","amp for channels 1-6;amp [mV];Counts",400,0,400);
     TH1F *hamp_Tot_zero = new TH1F("amp_Tot_zero","amp for channels 0-6;amp [mV];Counts",400,0,400);
     TH1F *hamp_Tot_chcut = new TH1F("amp_Tot_chcut","amp for channels 1-6, with spatial cut;amp [mV];Counts",400,0,400);
-    TH2F *histxy_st1 = new TH2F("histxy_st1","Stack of channels 1 to 6",100,xy_position[0],xy_position[1],
+    TH2F *histxy_st1 = new TH2F("histxy_st1","Stack of channels 1 to 6;x_dut [mm];y_dut [mm]",100,xy_position[0],xy_position[1],
                                 10,xy_position[2],xy_position[3]);
-    TH2F *h_tMeanMovTot = new TH2F("tMean_Tot","#Delta t vs x_dut[0];x_dut[0] [mm];#Delta t [ns]",
+    TH2F *h_tMeanMovTot = new TH2F("tMean_Tot","#Delta t vs x_dut;x_dut [mm];#Delta t [ns]",
                                    100,xy_position[0],xy_position[1],100,9.5,11.5);
 
     for (int channel=0; channel<8; channel++){
         // Simple amp plot
         auto htitleamp = Form("amp[%i];amp[%i] [mV];Counts",channel,channel);
         TH1F *histamp = new TH1F(Form("amp%i",channel),htitleamp,400,0,400);
-        chain->Draw(Form("amp[%i]>>amp%i",channel,channel),Form("amp[%i]>0",channel)); // && amp[%i]<100
+        chain->Draw(Form("amp[%i]>>amp%i",channel,channel),Form("amp[%i]>0",channel));
         if (channel!=7){
             hamp_Tot_zero->Add(histamp);
             if (channel!=0) hamp_Tot->Add(histamp);
@@ -84,12 +84,12 @@ void ampMacro(TString volt = "200", bool local = false){
         TH2F *histxy = new TH2F(Form("ampxy%i",channel),htitlexy,100,xy_position[0],xy_position[1],
                                 10,xy_position[2],xy_position[3]);
         chain->Draw(Form("y_dut[0]:x_dut[0]>>ampxy%i",channel),xCut+yCut+ampCut_Low,"COLZ");
-        if (channel!=0 && channel!=7) histxy_st1->Add(histxy);
 
         auto htitlexy_hi = Form("Hits in channel %i with %i<amp[%i]<%i;x_dut [mm];y_dut [mm]",channel,amp_low_cut[channel],channel,amp_high_cut[channel]);
         TH2F *histxy_hi = new TH2F(Form("ampxy%i_hi",channel),htitlexy_hi,100,xy_position[0],xy_position[1],
                                 10,xy_position[2],xy_position[3]);
         chain->Draw(Form("y_dut[0]:x_dut[0]>>ampxy%i_hi",channel),xCut+yCut+ampCut_Low+ampCut_High,"COLZ");
+        if (channel!=0 && channel!=7) histxy_st1->Add(histxy_hi);
 
         if (channel!=0 && channel!=7){
             // Amp plot regarding channel only
