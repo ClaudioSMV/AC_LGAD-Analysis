@@ -53,6 +53,8 @@ void ampMacro(TString volt = "200", bool local = false){
     TH1F *hamp_Tot_chcut = new TH1F("amp_Tot_chcut","amp for channels 1-6, with spatial cut;amp [mV];Counts",400,0,400);
     TH2F *histxy_st1 = new TH2F("histxy_st1","Stack of channels 1 to 6",100,xy_position[0],xy_position[1],
                                 10,xy_position[2],xy_position[3]);
+    TH2F *h_tMeanMovTot = new TH2F("tMean_Tot","#Delta t vs x_dut[0];x_dut[0] [mm];#Delta t [ns]",
+                                   100,xy_position[0],xy_position[1],100,9.5,11.5);
 
     for (int channel=0; channel<8; channel++){
         // Simple amp plot
@@ -85,27 +87,41 @@ void ampMacro(TString volt = "200", bool local = false){
                                 10,xy_position[2],xy_position[3]);
         chain->Draw(Form("y_dut[0]:x_dut[0]>>ampxy%i_hi",channel),xCut+yCut+ampCut_Low+ampCut_High,"COLZ");
 
-        // Amp plot regarding channel only
         if (channel!=0 && channel!=7){
-            TCut ch_cut = Form("x_dut[0]>%f && x_dut[0]<%f && y_dut[0]>%f && y_dut[0]<%f",ch_limits[channel][0],
-                            ch_limits[channel][1],ch_limits[channel][2],ch_limits[channel][3]);
+            // Amp plot regarding channel only
+            TCut xch_cut = Form("x_dut[0]>%f && x_dut[0]<%f",ch_limits[channel][0],ch_limits[channel][1]);
+            TCut ych_cut = Form("y_dut[0]>%f && y_dut[0]<%f",ch_limits[channel][2],ch_limits[channel][3]);
             auto htitleamp_chcut = Form("amp[%i] only channel;amp[%i] [mV];Counts",channel,channel);
             TH1F *histamp_chcut = new TH1F(Form("amp%i_chcut",channel),htitleamp_chcut,400,0,400);
             histamp_chcut->SetLineColor(kRed);
-            chain->Draw(Form("amp[%i]>>amp%i_chcut",channel,channel),Form("amp[%i]>0",channel)+ch_cut);
+            chain->Draw(Form("amp[%i]>>amp%i_chcut",channel,channel),Form("amp[%i]>0",channel)+xch_cut+ych_cut);
 
             hamp_Tot_chcut->Add(histamp_chcut);
-        }
 
-        // Time resolution
-        if (channel!=7){
-            auto htitle_tRes = Form("#Delta t = time[7] - time[%i];#Delta t [s];Counts",channel);
-            TH1F *hist_tRes = new TH1F(Form("tRes%i",channel),htitle_tRes,100,0,0);
-            chain->Draw(Form("LP2_20[7]-LP2_20[%i]>>tRes%i",channel,channel),
+            // Time resolution
+            auto htitle_tRes = Form("#Delta t = time[7] - time[%i];#Delta t [ns];Counts",channel);
+            TH1F *hist_tRes1 = new TH1F(Form("tRes%i1",channel),htitle_tRes,100,0,0);
+            chain->Draw(Form("LP2_20[7]*1e9-LP2_20[%i]*1e9>>tRes%i1",channel,channel),
                         Form("LP2_20[%i]!=0 && LP2_20[7]!=0",channel));
-            TH1F *hist_tRes2 = new TH1F(Form("tRes%i2",channel),htitle_tRes,100,9.5e-9,11.5e-9);
-            chain->Draw(Form("LP2_20[7]-LP2_20[%i]>>tRes%i2",channel,channel),
+            TH1F *hist_tRes2 = new TH1F(Form("tRes%i2",channel),htitle_tRes,100,9.5,11.5);
+            chain->Draw(Form("LP2_20[7]*1e9-LP2_20[%i]*1e9>>tRes%i2",channel,channel),
                         Form("LP2_20[%i]!=0 && LP2_20[7]!=0",channel));
+            TH1F *hist_tRes3 = new TH1F(Form("tRes%i3",channel),htitle_tRes,100,9.5,11.5);
+            chain->Draw(Form("LP2_20[7]*1e9-LP2_20[%i]*1e9>>tRes%i3",channel,channel),
+                        Form("LP2_20[%i]!=0 && LP2_20[7]!=0"+xch_cut+ych_cut,channel));
+            TH1F *hist_tRes4 = new TH1F(Form("tRes%i4",channel),htitle_tRes,100,9.5,11.5);
+            chain->Draw(Form("LP2_20[7]*1e9-LP2_20[%i]*1e9>>tRes%i4",channel,channel),
+                        Form("LP2_20[%i]!=0 && LP2_20[7]!=0"+xch_cut+ych_cut+ampCut_Low+ampCut_High,channel));
+            
+            auto htitle_tMean = Form("#Delta t = time[7] - time[%i] vs x_dut;x_dut [mm];#Delta t [ns]",channel);
+            TH2F *h_tMeanMove1 = new TH2F(Form("tMean%i1",channel),htitle_tMean,100,xy_position[0],xy_position[1],100,9.5,11.5);
+            chain->Draw(Form("LP2_20[7]*1e9-LP2_20[%i]*1e9:x_dut[0]>>tMean%i1",channel,channel),
+                        Form("LP2_20[%i]!=0 && LP2_20[7]!=0"+xCut+ych_cut,channel));
+            TH2F *h_tMeanMove2 = new TH2F(Form("tMean%i2",channel),htitle_tMean,100,xy_position[0],xy_position[1],100,9.5,11.5);
+            chain->Draw(Form("LP2_20[7]*1e9-LP2_20[%i]*1e9:x_dut[0]>>tMean%i2",channel,channel),
+                        Form("LP2_20[%i]!=0 && LP2_20[7]!=0"+xCut+ych_cut+ampCut_Low+ampCut_High,channel));
+            
+            h_tMeanMovTot->Add(h_tMeanMove2);
         }
     }
 
