@@ -177,8 +177,8 @@ void analysisBNL(TString volt = "200", bool local = false){
                 if (LP2_20[ch]!=0 && LP2_20[7]!=0){
                     ht_Res0_Vec[ch-1]->Fill(LP2_20[7]*1e9-LP2_20[ch]*1e9);
                     ht_Res1_Vec[ch-1]->Fill(LP2_20[7]*1e9-LP2_20[ch]*1e9);
-                    if (cut_amp && cut_Channel){
-                        ht_Res2_Vec[ch-1]->Fill(LP2_20[7]*1e9-LP2_20[ch]*1e9);
+                    if (cut_amp){
+                        if (cut_Channel) ht_Res2_Vec[ch-1]->Fill(LP2_20[7]*1e9-LP2_20[ch]*1e9);
                         ht_Mean_Vec[ch-1]->Fill(x_dut[0],LP2_20[7]*1e9-LP2_20[ch]*1e9);
                         ht_MeanTot->Fill(x_dut[0],LP2_20[7]*1e9-LP2_20[ch]*1e9);
                     }
