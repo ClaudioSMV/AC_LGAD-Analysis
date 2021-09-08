@@ -102,8 +102,10 @@ void analysisBNL(TString volt = "200", bool local = false){
         // Draw("LP2_20[7]*1e9-LP2_20[%i]*1e9:x_dut[0]>>tMean%i2","LP2_20[%i]!=0 && LP2_20[7]!=0"+xCut+ych_cut+ampCut_Low+ampCut_High);
         ht_Mean_Vec.push_back(ht_Mean);
     }
-    TH1F *hamp_Tot = new TH1F("hamp_Tot","amp for channels 1-6;amp [mV];Counts",400,0,400);
+
     TH1F *hamp_Tot_0 = new TH1F("hamp_Tot_0","amp for channels 0-6;amp [mV];Counts",400,0,400);
+    TH1F *hamp_Tot_1 = new TH1F("hamp_Tot_1","amp for channels 1-6;amp [mV];Counts",400,0,400);
+    TH1F *hamp_Tot_A = new TH1F("hamp_Tot_A","amp for channels 0-7;amp [mV];Counts",400,0,400);
     TH1F *hamp_Tot_Cut = new TH1F("hamp_Tot_Cut","amp for channels 1-6, with spatial cuts;amp [mV];Counts",400,0,400);
     hamp_Tot_Cut->SetLineColor(kRed);
     TH2F *hxy_Sum1 = new TH2F("hxy_Sum1","Sum of channels 1 to 6;x_dut [mm];y_dut [mm]",100,xy_Coord[0],xy_Coord[1],
@@ -118,8 +120,9 @@ void analysisBNL(TString volt = "200", bool local = false){
     //// std::vector<TH1F*> ht_Res1_Vec; // Resolution with zoom, but no cuts
     //// std::vector<TH1F*> ht_Res2_Vec; // Resolution with zoom and all cuts (per channel)
     //// std::vector<TH2F*> ht_Mean_Vec;
-    //// TH1F *hamp_Tot
-    //// TH1F *hamp_Tot_0
+    //// TH1F *hamp_Tot_0 // channels 0-6
+    //// TH1F *hamp_Tot_1 // channels 1-6
+    //// TH1F *hamp_Tot_A // channels 0-7 (All)
     //// TH1F *hamp_Tot_Cut // Spatial and amp cuts
     //// TH2F *hxy_Sum1
     //// TH2F *ht_MeanTot 
@@ -138,20 +141,24 @@ void analysisBNL(TString volt = "200", bool local = false){
             bool cut_amp = false;
             if (amp[ch]>amp_Low_Cut[ch] && amp[ch]<amp_High_Cut[ch]) cut_amp = true;
 
+            // Fill amp for all channels
+            hamp_Vec[ch]->Fill(amp[ch]);
+            hamp_Tot_A->Fill(amp[ch]);
+
+            // Fill spatial hists for all channels
+            if (cut_amp) hxy_Vec[ch]->Fill(x_dut[0],y_dut[0]);
+
+            // Fill considering different channels
             if (ch==0){
                 // Amp plots
-                hamp_Vec[ch]->Fill(amp[ch]);
                 hamp_Tot_0->Fill(amp[ch]);
 
                 // Spatial plots
-                if (cut_amp) hxy_Vec[ch]->Fill(x_dut[0],y_dut[0]);
             }
             else if (ch==7){
                 // Amp plots
-                hamp_Vec[ch]->Fill(amp[ch]);
 
                 // Spatial plots
-                if (cut_amp) hxy_Vec[ch]->Fill(x_dut[0],y_dut[0]);
             }
             else{
                 bool cut_Channel = false;
@@ -159,9 +166,8 @@ void analysisBNL(TString volt = "200", bool local = false){
                     y_dut[0]>ch_Limits[ch-1][2] && y_dut[0]<ch_Limits[ch-1][3]) cut_Channel = true;
 
                 // Amp plots
-                hamp_Vec[ch]->Fill(amp[ch]);
                 hamp_Tot_0->Fill(amp[ch]);
-                hamp_Tot->Fill(amp[ch]);
+                hamp_Tot_1->Fill(amp[ch]);
                 if (cut_Channel){
                     hamp_ChCut_Vec[ch-1]->Fill(amp[ch]);
                     hamp_Tot_Cut->Fill(amp[ch]);
@@ -169,18 +175,17 @@ void analysisBNL(TString volt = "200", bool local = false){
 
                 // Spatial plots
                 if (cut_amp){
-                    hxy_Vec[ch]->Fill(x_dut[0],y_dut[0]);
                     hxy_Sum1->Fill(x_dut[0],y_dut[0]);
                 }
 
                 // Time plots
                 if (LP2_20[ch]!=0 && LP2_20[7]!=0){
-                    ht_Res0_Vec[ch-1]->Fill(LP2_20[7]*1e9-LP2_20[ch]*1e9);
-                    ht_Res1_Vec[ch-1]->Fill(LP2_20[7]*1e9-LP2_20[ch]*1e9);
+                    ht_Res0_Vec[ch-1]->Fill((LP2_20[7]-LP2_20[ch])*1e9);
+                    ht_Res1_Vec[ch-1]->Fill((LP2_20[7]-LP2_20[ch])*1e9);
                     if (cut_amp){
-                        if (cut_Channel) ht_Res2_Vec[ch-1]->Fill(LP2_20[7]*1e9-LP2_20[ch]*1e9);
-                        ht_Mean_Vec[ch-1]->Fill(x_dut[0],LP2_20[7]*1e9-LP2_20[ch]*1e9);
-                        ht_MeanTot->Fill(x_dut[0],LP2_20[7]*1e9-LP2_20[ch]*1e9);
+                        if (cut_Channel) ht_Res2_Vec[ch-1]->Fill((LP2_20[7]-LP2_20[ch])*1e9);
+                        ht_Mean_Vec[ch-1]->Fill(x_dut[0],(LP2_20[7]-LP2_20[ch])*1e9);
+                        ht_MeanTot->Fill(x_dut[0],(LP2_20[7]-LP2_20[ch])*1e9);
                     }
                 }
             }
