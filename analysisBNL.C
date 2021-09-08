@@ -71,6 +71,7 @@ void analysisBNL(TString volt = "200", bool local = false){
     std::vector<TH1F*> ht_Res1_Vec; // Resolution with zoom, but no cuts
     std::vector<TH1F*> ht_Res2_Vec; // Resolution with zoom and all cuts
     std::vector<TH2F*> ht_Mean_Vec;
+    std::vector<TH2F*> hamp_Frac_Vec;
 
     for (int ch=0; ch<8; ch++){
         auto htitle_amp = Form("amp[%i];amp[%i] [mV];Counts",ch,ch);
@@ -101,17 +102,26 @@ void analysisBNL(TString volt = "200", bool local = false){
         TH2F *ht_Mean = new TH2F(Form("ht_Mean%i",ch),htitle_tMean,100,xy_Coord[0],xy_Coord[1],100,9.5,11.5);
         // Draw("LP2_20[7]*1e9-LP2_20[%i]*1e9:x_dut[0]>>tMean%i2","LP2_20[%i]!=0 && LP2_20[7]!=0"+xCut+ych_cut+ampCut_Low+ampCut_High);
         ht_Mean_Vec.push_back(ht_Mean);
+
+        auto htitle_ampFrac = Form("amp[%i]/Sum over channels 1-6 vs x_dut;x_dut [mm];amp %%",ch);
+        TH2F *hamp_Frac = new TH2F(Form("hamp_Frac%i",ch),htitle_ampFrac,100,xy_Coord[0],xy_Coord[1],100,0.,1.);
+        hamp_Frac_Vec.push_back(hamp_Frac);
     }
 
     TH1F *hamp_Tot_0 = new TH1F("hamp_Tot_0","amp for channels 0-6;amp [mV];Counts",400,0,400);
     TH1F *hamp_Tot_1 = new TH1F("hamp_Tot_1","amp for channels 1-6;amp [mV];Counts",400,0,400);
     TH1F *hamp_Tot_A = new TH1F("hamp_Tot_A","amp for channels 0-7;amp [mV];Counts",400,0,400);
+    TH1F *hamp_Sum_0 = new TH1F("hamp_Sum_0","Sum of amp for channels 0-6;amp [mV];Counts",400,0,400);
+    TH1F *hamp_Sum_1 = new TH1F("hamp_Sum_1","Sum of amp for channels 1-6;amp [mV];Counts",400,0,400);
+    TH1F *hamp_Sum_LP = new TH1F("hamp_Sum_LP","Sum of amp for channels 1-6 only when LP!=0;amp [mV];Counts",400,0,400);
     TH1F *hamp_Tot_Cut = new TH1F("hamp_Tot_Cut","amp for channels 1-6, with spatial cuts;amp [mV];Counts",400,0,400);
     hamp_Tot_Cut->SetLineColor(kRed);
     TH2F *hxy_Sum1 = new TH2F("hxy_Sum1","Sum of channels 1 to 6;x_dut [mm];y_dut [mm]",100,xy_Coord[0],xy_Coord[1],
                                 10,xy_Coord[2],xy_Coord[3]);
     TH2F *ht_MeanTot = new TH2F("ht_MeanTot","#Delta t vs x_dut;x_dut [mm];#Delta t [ns]",
                                    100,xy_Coord[0],xy_Coord[1],100,9.5,11.5);
+    auto htitle_tweight_LP = "Weighted time with LP!=0 vs x_dut;x_dut [mm]; time[7] - weighted_time [ns]";
+    TH2F *ht_weight_LP = new TH2F("ht_weight_LP",htitle_tweight_LP,100,xy_Coord[0],xy_Coord[1],100,9.5,11.5);
 
     //// std::vector<TH1F*> hamp_Vec; // without cuts
     //// std::vector<TH2F*> hxy_Vec;
@@ -120,12 +130,17 @@ void analysisBNL(TString volt = "200", bool local = false){
     //// std::vector<TH1F*> ht_Res1_Vec; // Resolution with zoom, but no cuts
     //// std::vector<TH1F*> ht_Res2_Vec; // Resolution with zoom and all cuts (per channel)
     //// std::vector<TH2F*> ht_Mean_Vec;
+    //// std::vector<TH2F*> hamp_Frac_Vec;
     //// TH1F *hamp_Tot_0 // channels 0-6
     //// TH1F *hamp_Tot_1 // channels 1-6
     //// TH1F *hamp_Tot_A // channels 0-7 (All)
+    //// TH1F *hamp_Sum_0 // Sum of channels 0-6
+    //// TH1F *hamp_Sum_1 // Sum of channels 1-6
+    //// TH1F *hamp_Sum_LP // Sum of channels 1-6 with LP!=0
     //// TH1F *hamp_Tot_Cut // Spatial and amp cuts
     //// TH2F *hxy_Sum1
-    //// TH2F *ht_MeanTot 
+    //// TH2F *ht_MeanTot
+    //// TH2F *ht_weight_LP
 
     // Loop over all entries
     for (int i=0; i<Nentries; i++){
@@ -134,6 +149,11 @@ void analysisBNL(TString volt = "200", bool local = false){
         bool cut_Coord = false;
         if (x_dut[0]>xy_Coord[0] && x_dut[0]<xy_Coord[1] && y_dut[0]>xy_Coord[2] && y_dut[0]<xy_Coord[3]) cut_Coord = true;
         if (!cut_Coord) continue;
+
+        float sum_amp_0 = 0.0;
+        float sum_amp_1 = 0.0;
+        float sum_amp_time_1 = 0.0;
+        float weight_numerator = 0.0;
 
         for (int ch=0; ch<8; ch++){
             if (amp[ch]<0) continue;
@@ -152,6 +172,7 @@ void analysisBNL(TString volt = "200", bool local = false){
             if (ch==0){
                 // Amp plots
                 hamp_Tot_0->Fill(amp[ch]);
+                sum_amp_0+=amp[ch];
 
                 // Spatial plots
             }
@@ -172,6 +193,8 @@ void analysisBNL(TString volt = "200", bool local = false){
                     hamp_ChCut_Vec[ch-1]->Fill(amp[ch]);
                     hamp_Tot_Cut->Fill(amp[ch]);
                 }
+                sum_amp_0+=amp[ch];
+                sum_amp_1+=amp[ch];
 
                 // Spatial plots
                 if (cut_amp){
@@ -179,6 +202,10 @@ void analysisBNL(TString volt = "200", bool local = false){
                 }
 
                 // Time plots
+                if (LP2_20[ch]!=0){
+                    sum_amp_time_1+=amp[ch];
+                    weight_numerator+=amp[ch]*LP2_20[ch];
+                }
                 if (LP2_20[ch]!=0 && LP2_20[7]!=0){
                     ht_Res0_Vec[ch-1]->Fill((LP2_20[7]-LP2_20[ch])*1e9);
                     ht_Res1_Vec[ch-1]->Fill((LP2_20[7]-LP2_20[ch])*1e9);
@@ -189,6 +216,22 @@ void analysisBNL(TString volt = "200", bool local = false){
                     }
                 }
             }
+        }
+
+        hamp_Sum_0->Fill(sum_amp_0);
+        hamp_Sum_1->Fill(sum_amp_1);
+        hamp_Sum_LP->Fill(sum_amp_time_1);
+
+        if (sum_amp_1 > 110){
+            for (int ch=1; ch<=6; ch++){
+                if (amp[ch]<0) continue;
+
+                hamp_Frac_Vec[ch-1]->Fill(x_dut[0],amp[ch]/sum_amp_1);
+            }
+        }
+        if (sum_amp_time_1 > 110 && LP2_20[7]!=0){
+            float weighted_time = weight_numerator/sum_amp_time_1;
+            ht_weight_LP->Fill(x_dut[0],(LP2_20[7]-weighted_time)*1e9);
         }
     }
 
