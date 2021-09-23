@@ -15,7 +15,7 @@ void analysisBNL(TString volt = "200", bool local = false){
     std::ifstream ifile(txt);
 
     TChain *chain = new TChain("pulse");
-    TFile *output = TFile::Open("BNL2020_"+volt+"_A.root","RECREATE");
+    TFile *output = TFile::Open("BNL2020_"+volt+"_B.root","RECREATE");
 
     // Reading files
     int counter = 0;
@@ -62,6 +62,8 @@ void analysisBNL(TString volt = "200", bool local = false){
     float xy_Coord[4] = {-1.1, 1.5, 9.5, 12.2}; // {x_min, x_max, y_min, y_max}
     float ch_Limits[6][4] = {{0.29, 0.41, 10.0, 11.6}, {0.20, 0.30, 10, 11.6}, {0.10, 0.20, 10, 11.6},
                             {0.00, 0.10, 10.0, 11.6}, {-0.10, -0.01, 10, 11.6}, {-0.21, -0.11, 10, 11.6}};
+    float timeCorrTerm[6] = {10.5553183648148, 10.6590122524753, 10.6470996902006,
+                            10.6075997712141, 10.6432860123283, 10.6622858488865};
 
     // Create histograms
     std::vector<TH1F*> hamp_Vec;
@@ -99,7 +101,7 @@ void analysisBNL(TString volt = "200", bool local = false){
         // Draw("LP2_20[7]*1e9-LP2_20[ch]*1e9>>tRes%i1","LP2_20[ch]!=0 && LP2_20[7]!=0"+xch_cut+ych_cut+ampCut_Low+ampCut_High);
         
         auto htitle_tMean = Form("#Delta t = time[7] - time[%i] vs x_dut;x_dut [mm];#Delta t [ns]",ch);
-        TH2F *ht_Mean = new TH2F(Form("ht_Mean%i",ch),htitle_tMean,100,xy_Coord[0],xy_Coord[1],100,9.5,11.5);
+        TH2F *ht_Mean = new TH2F(Form("ht_Mean%i",ch),htitle_tMean,100,xy_Coord[0],xy_Coord[1],100,-0.5,0.5);
         // Draw("LP2_20[7]*1e9-LP2_20[%i]*1e9:x_dut[0]>>tMean%i2","LP2_20[%i]!=0 && LP2_20[7]!=0"+xCut+ych_cut+ampCut_Low+ampCut_High);
         ht_Mean_Vec.push_back(ht_Mean);
 
@@ -119,9 +121,9 @@ void analysisBNL(TString volt = "200", bool local = false){
     TH2F *hxy_Sum1 = new TH2F("hxy_Sum1","Sum of channels 1 to 6;x_dut [mm];y_dut [mm]",100,xy_Coord[0],xy_Coord[1],
                                 10,xy_Coord[2],xy_Coord[3]);
     TH2F *ht_MeanTot = new TH2F("ht_MeanTot","#Delta t vs x_dut;x_dut [mm];#Delta t [ns]",
-                                   100,xy_Coord[0],xy_Coord[1],100,9.5,11.5);
+                                   100,xy_Coord[0],xy_Coord[1],100,-0.5,0.5);
     auto htitle_tweight_LP = "Weighted time with LP!=0 vs x_dut;x_dut [mm]; time[7] - weighted_time [ns]";
-    TH2F *ht_weight_LP = new TH2F("ht_weight_LP",htitle_tweight_LP,100,xy_Coord[0],xy_Coord[1],100,9.5,11.5);
+    TH2F *ht_weight_LP = new TH2F("ht_weight_LP",htitle_tweight_LP,100,xy_Coord[0],xy_Coord[1],100,-0.5,0.5);
 
     //// std::vector<TH1F*> hamp_Vec; // without cuts
     //// std::vector<TH2F*> hxy_Vec;
@@ -204,15 +206,15 @@ void analysisBNL(TString volt = "200", bool local = false){
                 // Time plots
                 if (LP2_20[ch]!=0){
                     sum_amp_time_1+=amp[ch];
-                    weight_numerator+=amp[ch]*LP2_20[ch];
+                    weight_numerator+=amp[ch]*(LP2_20[ch]*1e9 + timeCorrTerm[ch-1]);
                 }
                 if (LP2_20[ch]!=0 && LP2_20[7]!=0){
-                    ht_Res0_Vec[ch-1]->Fill((LP2_20[7]-LP2_20[ch])*1e9);
-                    ht_Res1_Vec[ch-1]->Fill((LP2_20[7]-LP2_20[ch])*1e9);
+                    ht_Res0_Vec[ch-1]->Fill((LP2_20[7]-LP2_20[ch])*1e9 - timeCorrTerm[ch-1]);
+                    ht_Res1_Vec[ch-1]->Fill((LP2_20[7]-LP2_20[ch])*1e9 - timeCorrTerm[ch-1]);
                     if (cut_amp){
                         if (cut_Channel) ht_Res2_Vec[ch-1]->Fill((LP2_20[7]-LP2_20[ch])*1e9);
-                        ht_Mean_Vec[ch-1]->Fill(x_dut[0],(LP2_20[7]-LP2_20[ch])*1e9);
-                        ht_MeanTot->Fill(x_dut[0],(LP2_20[7]-LP2_20[ch])*1e9);
+                        ht_Mean_Vec[ch-1]->Fill(x_dut[0],(LP2_20[7]-LP2_20[ch])*1e9 - timeCorrTerm[ch-1]);
+                        ht_MeanTot->Fill(x_dut[0],(LP2_20[7]-LP2_20[ch])*1e9 - timeCorrTerm[ch-1]);
                     }
                 }
             }
@@ -231,7 +233,7 @@ void analysisBNL(TString volt = "200", bool local = false){
         }
         if (sum_amp_time_1 > 110 && LP2_20[7]!=0){
             float weighted_time = weight_numerator/sum_amp_time_1;
-            ht_weight_LP->Fill(x_dut[0],(LP2_20[7]-weighted_time)*1e9);
+            ht_weight_LP->Fill(x_dut[0],LP2_20[7]*1e9-weighted_time);
         }
     }
 
