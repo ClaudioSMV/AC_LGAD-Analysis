@@ -10,6 +10,11 @@ void analysisMultiSensor(TString relative_path = "./"){
     //// Output
     TFile *output = TFile::Open("MultiSensor.root","RECREATE");
 
+    chain->SetBranchStatus("*",0);
+    chain->SetBranchStatus("amp",1);
+    chain->SetBranchStatus("x_laser",1);
+    chain->SetBranchStatus("y_laser",1);
+
     // // Amp threshold value and position of wires
     // int amp_Low_Cut[8] = {60, 60, 60, 70, 70, 70, 70, 70};
     // int amp_High_Cut[8] = {220, 200, 200, 200, 180, 180, 180, 350};
@@ -32,26 +37,80 @@ void analysisMultiSensor(TString relative_path = "./"){
     const int x_size = x_range.size();
     const int y_size = y_range.size();
 
+    // for (int iX=0; iX<x_size; iX++){
+    //     for (int ich=0; ich<6; ich++){
+    //         std::vector<float> amp_value(y_size);
+
+    //         // for (int iY=0; iY<y_size; iY++){
+    //         //     TH1F *hamp_tmp = new TH1F("hamp_tmp", "Amp", 220, 0, 220);
+    //         //     chain->Draw(Form("amp[%i]>>hamp_tmp", ich), Form("amp[%i]>=0 && x_laser>0.999*%f && x_laser<1.001*%f && y_laser>0.999*%f && y_laser<1.001*%f",
+    //         //                                                      ich, x_range[iX], x_range[iX], y_range_REAL[iY], y_range_REAL[iY]));
+    //         //     float mean = hamp_tmp->GetMean();
+
+    //         //     // std::cout << "Mean strip " << ich << ", y[" << iY << "]: " << mean << std::endl;
+    //         //     // std::cout << Form("x_laser %f, y_laser %f ", x_range[iX], y_range_REAL[iY]) << std::endl;
+
+    //         //     amp_value[iY] = mean;
+    //         //     hamp_tmp->Delete();
+    //         // }
+
+    //         TGraph *graph_tmp = new TGraph(y_size, &y_range_REAL[0], &amp_value[0]);
+    //         graph_tmp->SetName(Form("Amp%iVsYLaser_X%i",ich,iX));
+    //         graph_tmp->Write();
+
+    //         amp_value.clear();
+    //     }
+    // }
+
+    // // // // //
+
+    float amp[8], x_laser, y_laser;
+
+    chain->SetBranchAddress("amp", amp);
+    chain->SetBranchAddress("x_laser", &x_laser);
+    chain->SetBranchAddress("y_laser", &y_laser);
+
+    std::vector<TH1F*> hAmp_Vec;
+
     for (int iX=0; iX<x_size; iX++){
+        for (int iY=0; iY<y_size; iY++){
+            for (int ich=0; ich<6; ich++){
+                TH1F *hamp_tmp = new TH1F(Form("hAmp_X%iY%iCh%i",iX,iY,ich), Form("Amp, X = %.2f, Y = %.2f;amp[%i];Counts",x_range[iX],y_range_REAL[iY],ich), 220, 0, 220);
+                hAmp_Vec.push_back(hamp_tmp); // Histogram position = ich + iY*6 + iX*y_size*6
+            }
+        }
+    }
+
+    int Nentries = chain->GetEntries();
+
+    for (int i=0; i<Nentries; i++){
+        chain->GetEntry(i);
+
+        int x_pos = (int) round((x_laser - 36.5)/0.5);
+        int y_pos = (int) round((y_laser - 14.05)/0.25);
+
         for (int ich=0; ich<6; ich++){
+            if (amp[ich]>0){
+                hAmp_Vec[ich + y_pos*6 + x_pos*y_size*6]->Fill(amp[ich]);
+            }
+        }
+    }
+
+    for (int jX=0; jX<x_size; jX++){
+        for (int jCh=0; jCh<6; jCh++){
             std::vector<float> amp_value(y_size);
 
-            for (int iY=0; iY<y_size; iY++){
-                TH1F *hamp_tmp = new TH1F("hamp_tmp", "Amp", 220, 0, 220);
-                chain->Draw(Form("amp[%i]>>hamp_tmp", ich), Form("amp[%i]>=0 && x_laser>0.999*%f && x_laser<1.001*%f && y_laser>0.999*%f && y_laser<1.001*%f",
-                                                                 ich, x_range[iX], x_range[iX], y_range_REAL[iY], y_range_REAL[iY]));
-                float mean = hamp_tmp->GetMean();
+            for (int jY=0; jY<y_size; jY++){
+                float mean = hAmp_Vec[jCh + jY*6 + jX*y_size*6]->GetMean();
+                amp_value[jY] = mean;
 
-                // std::cout << "Mean strip " << ich << ", y[" << iY << "]: " << mean << std::endl;
-                // std::cout << Form("x_laser %f, y_laser %f ", x_range[iX], y_range_REAL[iY]) << std::endl;
-
-                amp_value[iY] = mean;
-                hamp_tmp->Delete();
+                // hAmp_Vec[jCh + jY*6 + jX*y_size*6]->Delete();
             }
-
+            
             TGraph *graph_tmp = new TGraph(y_size, &y_range_REAL[0], &amp_value[0]);
-            graph_tmp->SetName(Form("Amp%iVsYLaser_X%i",ich,iX));
+            graph_tmp->SetName(Form("Amp%iVsYLaser_X%i",jCh,jX));
             graph_tmp->Write();
+            graph_tmp->Delete();
 
             amp_value.clear();
         }
