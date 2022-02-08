@@ -1,0 +1,20 @@
+#Don't ignore anything with dots
+*
+!*.*
+!*/
+
+#Binary and Image
+**.exe
+**.png
+**.jpg
+**.gif
+**.bmp
+**.ps
+**.jpeg
+**.eps
+**.pcm
+
+**/.vscode
+
+#Root
+**.root
