@@ -109,6 +109,7 @@ void analysisMultiSensor(TString relative_path = "./"){
             
             TGraph *graph_tmp = new TGraph(y_size, &y_range_REAL[0], &amp_value[0]);
             graph_tmp->SetName(Form("Amp%iVsYLaser_X%i",jCh,jX));
+            graph_tmp->SetTitle(Form("Amp, X = %.2f;y_laser [mm];Mean amp[%i]",x_range[jX],jCh));
             graph_tmp->Write();
             graph_tmp->Delete();
 
