@@ -48,7 +48,7 @@ for iX in range(7):
         list_hAmpVsY[iCh].SetLineWidth(3)
         legend.AddEntry(list_hAmpVsY[iCh], "Channel "+str(iCh))
         # list_hAmpVsY[iCh].GetYaxis().SetRangeUser(0.,220.)
-        list_hAmpVsY[iCh].Draw("CP")
+        list_hAmpVsY[iCh].Draw("LP")
     legend.Draw()
     canvas.SaveAs("AmpVsY_X"+str(iX)+".gif")
     htmp.Delete()
