@@ -34,6 +34,7 @@ void analysisMultiSensor(TString relative_path = "./"){
     // std::vector<float> y_range = {14.25}; // Real=this+0.05
     // std::vector<float> y_range_REAL = {14.30};
 
+    const int n_channels = 6;
     const int x_size = x_range.size();
     const int y_size = y_range.size();
 
@@ -74,9 +75,9 @@ void analysisMultiSensor(TString relative_path = "./"){
 
     for (int iX=0; iX<x_size; iX++){
         for (int iY=0; iY<y_size; iY++){
-            for (int ich=0; ich<6; ich++){
+            for (int ich=0; ich<n_channels; ich++){
                 TH1F *hamp_tmp = new TH1F(Form("hAmp_X%iY%iCh%i",iX,iY,ich), Form("Amp, X = %.2f, Y = %.2f;amp[%i];Counts",x_range[iX],y_range_REAL[iY],ich), 220, 0, 220);
-                hAmp_Vec.push_back(hamp_tmp); // Histogram position = ich + iY*6 + iX*y_size*6
+                hAmp_Vec.push_back(hamp_tmp); // Histogram position = ich + iY*n_channels + iX*y_size*n_channels (n_channels = 6 almost always)
             }
         }
     }
@@ -89,22 +90,31 @@ void analysisMultiSensor(TString relative_path = "./"){
         int x_pos = (int) round((x_laser - 36.5)/0.5);
         int y_pos = (int) round((y_laser - 14.05)/0.25);
 
-        for (int ich=0; ich<6; ich++){
+        for (int ich=0; ich<n_channels; ich++){
             if (amp[ich]>0){
-                hAmp_Vec[ich + y_pos*6 + x_pos*y_size*6]->Fill(amp[ich]);
+                hAmp_Vec[ich + y_pos*n_channels + x_pos*y_size*n_channels]->Fill(amp[ich]);
             }
         }
     }
 
+    std::vector<TH2F*> hAmpVsXY_Vec;
+    for (int iCh=0; iCh<n_channels; iCh++){
+        TH2F *hAmpVsXY = new TH2F(Form("hAmpVsXY_Ch%i",iCh), Form("Amplitude Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + 0.5,
+                                  y_size, y_range_REAL[0], y_range_REAL[y_size-1] + 0.25);
+        hAmpVsXY_Vec.push_back(hAmpVsXY);
+    }
+
     for (int jX=0; jX<x_size; jX++){
-        for (int jCh=0; jCh<6; jCh++){
+        for (int jCh=0; jCh<n_channels; jCh++){
             std::vector<float> amp_value(y_size);
 
             for (int jY=0; jY<y_size; jY++){
-                float mean = hAmp_Vec[jCh + jY*6 + jX*y_size*6]->GetMean();
+                float mean = hAmp_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->GetMean();
                 amp_value[jY] = mean;
 
-                // hAmp_Vec[jCh + jY*6 + jX*y_size*6]->Delete();
+                hAmpVsXY_Vec[jCh]->Fill(x_range[jX], y_range_REAL[jY], mean);
+
+                // hAmp_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->Delete();
             }
             
             TGraph *graph_tmp = new TGraph(y_size, &y_range_REAL[0], &amp_value[0]);
