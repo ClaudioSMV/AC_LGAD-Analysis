@@ -34,7 +34,7 @@ void analysisMultiSensor(TString relative_path = "./"){
     // std::vector<float> y_range = {14.25}; // Real=this+0.05
     // std::vector<float> y_range_REAL = {14.30};
 
-    const int n_channels = 6;
+    const int n_channels = 6 + 2;
     const int x_size = x_range.size();
     const int y_size = y_range.size();
 
@@ -98,21 +98,33 @@ void analysisMultiSensor(TString relative_path = "./"){
     }
 
     std::vector<TH2F*> hAmpVsXY_Vec;
+    std::vector<TH2F*> hAmpVsXY_Corr_Vec;
     for (int iCh=0; iCh<n_channels; iCh++){
         TH2F *hAmpVsXY = new TH2F(Form("hAmpVsXY_Ch%i",iCh), Form("Amplitude Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + 0.5,
                                   y_size, y_range_REAL[0], y_range_REAL[y_size-1] + 0.25);
         hAmpVsXY_Vec.push_back(hAmpVsXY);
+
+        TH2F *hAmpVsXY_Corr = new TH2F(Form("hAmpVsXY_Corr_Ch%i",iCh), Form("Amplitude corrected Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + 0.5,
+                                  y_size, y_range_REAL[0], y_range_REAL[y_size-1] + 0.25);
+        hAmpVsXY_Corr_Vec.push_back(hAmpVsXY_Corr);
     }
 
+    int ch_laser = 7; // CHECK
     for (int jX=0; jX<x_size; jX++){
         for (int jCh=0; jCh<n_channels; jCh++){
             std::vector<float> amp_value(y_size);
+            std::vector<float> new_amp_value(y_size);
 
             for (int jY=0; jY<y_size; jY++){
                 float mean = hAmp_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->GetMean();
                 amp_value[jY] = mean;
 
+                float amp_laser = hAmp_Vec[ch_laser + jY*n_channels + jX*y_size*n_channels]->GetMean();
+                new_amp_value[jY] = 100*mean/amp_laser;
+
                 hAmpVsXY_Vec[jCh]->Fill(x_range[jX], y_range_REAL[jY], mean);
+
+                hAmpVsXY_Corr_Vec[jCh]->Fill(x_range[jX], y_range_REAL[jY], 100*mean/amp_laser);
 
                 // hAmp_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->Delete();
             }
@@ -123,7 +135,14 @@ void analysisMultiSensor(TString relative_path = "./"){
             graph_tmp->Write();
             graph_tmp->Delete();
 
+            TGraph *graph_Corr_tmp = new TGraph(y_size, &y_range_REAL[0], &new_amp_value[0]);
+            graph_Corr_tmp->SetName(Form("Amp%iVsYLaser_Corr_X%i",jCh,jX));
+            graph_Corr_tmp->SetTitle(Form("Amp corrected, X = %.2f;y_laser [mm];Mean amp[%i]",x_range[jX],jCh));
+            graph_Corr_tmp->Write();
+            graph_Corr_tmp->Delete();
+
             amp_value.clear();
+            new_amp_value.clear();
         }
     }
 
