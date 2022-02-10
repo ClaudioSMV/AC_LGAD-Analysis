@@ -88,7 +88,7 @@ void analysisMultiSensor(TString relative_path = "./"){
 
     std::vector<TGraph*> graph_y_const_Vec;
 
-    for (int iY=; iY<y_size; iY++){
+    for (int iY=0; iY<y_size; iY++){
         for (int iCh=0; iCh<n_channels; iCh++){
             TGraph *graph_y_const_tmp = new TGraph(x_size);
             graph_y_const_tmp->SetName(Form("Amp%iVsXLaser_Y%i",iCh,iY));
@@ -128,7 +128,7 @@ void analysisMultiSensor(TString relative_path = "./"){
                 hAmpVsXY_Corr_Vec[jCh]->Fill(x_range[jX], y_range_REAL[jY], 100*mean/amp_laser);
 
                 // hAmp_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->Delete();
-                graph_y_const_Vec[jCh + jY*n_channels]->SetPoint(jX, x_laser[jX], new_amp_value[jY]);
+                graph_y_const_Vec[jCh + jY*n_channels]->SetPoint(jX, x_range[jX], new_amp_value[jY]);
             }
             
             TGraph *graph_tmp = new TGraph(y_size, &y_range_REAL[0], &amp_value[0]);
@@ -154,8 +154,6 @@ void analysisMultiSensor(TString relative_path = "./"){
     }
 
     std::cout << "Histograms and TGraphs (X const) already created!" << std::endl;
-
-    for (int jY=0; )
 
     // Save and close
     output->Write();
