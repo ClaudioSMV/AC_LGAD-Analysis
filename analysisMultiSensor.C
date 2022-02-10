@@ -84,8 +84,14 @@ void analysisMultiSensor(TString relative_path = "./"){
 
     int Nentries = chain->GetEntries();
 
+    int perc = 1;
     for (int i=0; i<Nentries; i++){
         chain->GetEntry(i);
+
+        if (i > perc*Nentries/4.){
+            std::cout << "\t" << perc*25 << "%" << " of data processed." << std::endl;
+            perc++;
+        }
 
         int x_pos = (int) round((x_laser - 36.5)/0.5);
         int y_pos = (int) round((y_laser - 14.05)/0.25);
@@ -96,6 +102,9 @@ void analysisMultiSensor(TString relative_path = "./"){
             }
         }
     }
+
+    std::cout << "\t" << 100 << "%" << " of data processed. DONE!" << std::endl;
+    std::cout << "Creating histograms and TGraphs..." << std::endl;
 
     std::vector<TH2F*> hAmpVsXY_Vec;
     std::vector<TH2F*> hAmpVsXY_Corr_Vec;
@@ -121,6 +130,9 @@ void analysisMultiSensor(TString relative_path = "./"){
 
                 float amp_laser = hAmp_Vec[ch_laser + jY*n_channels + jX*y_size*n_channels]->GetMean();
                 new_amp_value[jY] = 100*mean/amp_laser;
+                
+                std::cout << "X="<< jX << "; CH=" << jCh << "; Y=" << jY << "; Amp="<< Format("%.2f",amp_laser);
+                std::cout << "; AmpCorr=" << Format("%.2f",100*mean/amp_laser) << "; AmpLaser=" << Format("%.2f",amp_laser) << std::endl;
 
                 hAmpVsXY_Vec[jCh]->Fill(x_range[jX], y_range_REAL[jY], mean);
 
@@ -146,7 +158,7 @@ void analysisMultiSensor(TString relative_path = "./"){
         }
     }
 
-    std::cout << "TGraphs created!" << std::endl;
+    std::cout << "Histograms and TGraphs already created!" << std::endl;
 
     // Save and close
     output->Write();
