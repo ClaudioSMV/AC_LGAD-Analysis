@@ -89,6 +89,12 @@ void analysisMultiSensor(TString relative_path = "./"){
     std::vector<TH2F*> hAmpVsXY_Vec;
     std::vector<TH2F*> hAmpVsXY_Corr_Vec;
     std::vector<TH2F*> hTimeVsXY_Vec;
+
+    double contour[20];
+    for (int i=0; i<20; i++){
+        contour[i] = 5.4e-8 + 0.2e-8*i/19;
+    }
+
     for (int iCh=0; iCh<n_channels; iCh++){
         TH2F *hAmpVsXY = new TH2F(Form("hAmpVsXY_Ch%i",iCh), Form("Amplitude Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + 0.5,
                                   y_size, y_range[0], y_range[y_size-1] + 0.25);
@@ -100,6 +106,7 @@ void analysisMultiSensor(TString relative_path = "./"){
 
         TH2F *hTimeVsXY = new TH2F(Form("hTimeVsXY_Ch%i",iCh), Form("#DeltaTime Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + 0.5,
                                   y_size, y_range[0], y_range[y_size-1] + 0.25);
+        hTimeVsXY->SetContour(20, contour);
         hTimeVsXY_Vec.push_back(hTimeVsXY);
     }
 
@@ -139,7 +146,7 @@ void analysisMultiSensor(TString relative_path = "./"){
                 float amp_laser = hAmp_Vec[ch_laser + jY*n_channels + jX*y_size*n_channels]->GetMean();
                 new_amp_value[jY] = 100*mean/amp_laser;
 
-                float mean_time = hTime_Vec[jch + jY*n_channels + jX*y_size*n_channels]->GetMean();
+                float mean_time = hTime_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->GetMean();
                 time_value[jY] = mean_time;
 
                 // if (new_amp_value[jY] > amp_max){
