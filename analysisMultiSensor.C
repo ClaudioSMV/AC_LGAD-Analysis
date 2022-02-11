@@ -43,7 +43,7 @@ void analysisMultiSensor(TString relative_path = "./"){
     for (int iX=0; iX<x_size; iX++){
         for (int iY=0; iY<y_size; iY++){
             for (int ich=0; ich<n_channels; ich++){
-                TH1F *hamp_tmp = new TH1F(Form("hAmp_X%iY%iCh%i",iX,iY,ich), Form("Amp, X = %.2f, Y = %.2f;amp[%i];Counts",x_range[iX],y_range_REAL[iY],ich), 220, 0, 220);
+                TH1F *hamp_tmp = new TH1F(Form("hAmp_X%iY%iCh%i",iX,iY,ich), Form("Amp, X = %.2f, Y = %.2f;amp[%i];Counts",x_range[iX],y_range[iY],ich), 220, 0, 220);
                 hAmp_Vec.push_back(hamp_tmp); // Histogram position = ich + iY*n_channels + iX*y_size*n_channels (n_channels = 6 almost always)
             }
         }
@@ -78,11 +78,11 @@ void analysisMultiSensor(TString relative_path = "./"){
     std::vector<TH2F*> hAmpVsXY_Corr_Vec;
     for (int iCh=0; iCh<n_channels; iCh++){
         TH2F *hAmpVsXY = new TH2F(Form("hAmpVsXY_Ch%i",iCh), Form("Amplitude Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + 0.5,
-                                  y_size, y_range_REAL[0], y_range_REAL[y_size-1] + 0.25);
+                                  y_size, y_range[0], y_range[y_size-1] + 0.25);
         hAmpVsXY_Vec.push_back(hAmpVsXY);
 
         TH2F *hAmpVsXY_Corr = new TH2F(Form("hAmpVsXY_Corr_Ch%i",iCh), Form("Amplitude corrected Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + 0.5,
-                                  y_size, y_range_REAL[0], y_range_REAL[y_size-1] + 0.25);
+                                  y_size, y_range[0], y_range[y_size-1] + 0.25);
         hAmpVsXY_Corr_Vec.push_back(hAmpVsXY_Corr);
     }
 
@@ -92,7 +92,7 @@ void analysisMultiSensor(TString relative_path = "./"){
         for (int iCh=0; iCh<n_channels; iCh++){
             TGraph *graph_y_const_tmp = new TGraph(x_size);
             graph_y_const_tmp->SetName(Form("Amp%iVsXLaser_Y%i",iCh,iY));
-            graph_y_const_tmp->SetTitle(Form("Amp, Y = %.2f;x_laser [mm];Mean amp[%i]",y_range_REAL[iY],iCh));
+            graph_y_const_tmp->SetTitle(Form("Amp, Y = %.2f;x_laser [mm];Mean amp[%i]",y_range[iY],iCh));
             graph_y_const_Vec.push_back(graph_y_const_tmp); // Graph position = ich + iY*n_channels
         }
     }
@@ -117,27 +117,27 @@ void analysisMultiSensor(TString relative_path = "./"){
 
                 // if (new_amp_value[jY] > amp_max){
                 //     amp_max = new_amp_value[jY];
-                //     y_max = y_range_REAL[jY];
+                //     y_max = y_range[jY];
                 // }
                 
                 // std::cout << "X="<< jX << "; CH=" << jCh << "; Y=" << jY << "; Amp="<< printf("%.2f",amp_laser);
                 // std::cout << "; AmpCorr=" << printf("%.2f",100*mean/amp_laser) << "; AmpLaser=" << printf("%.2f",amp_laser) << std::endl;
 
-                hAmpVsXY_Vec[jCh]->Fill(x_range[jX], y_range_REAL[jY], mean);
+                hAmpVsXY_Vec[jCh]->Fill(x_range[jX], y_range[jY], mean);
 
-                hAmpVsXY_Corr_Vec[jCh]->Fill(x_range[jX], y_range_REAL[jY], 100*mean/amp_laser);
+                hAmpVsXY_Corr_Vec[jCh]->Fill(x_range[jX], y_range[jY], 100*mean/amp_laser);
 
                 // hAmp_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->Delete();
                 graph_y_const_Vec[jCh + jY*n_channels]->SetPoint(jX, x_range[jX], new_amp_value[jY]);
             }
             
-            TGraph *graph_tmp = new TGraph(y_size, &y_range_REAL[0], &amp_value[0]);
+            TGraph *graph_tmp = new TGraph(y_size, &y_range[0], &amp_value[0]);
             graph_tmp->SetName(Form("Amp%iVsYLaser_X%i",jCh,jX));
             graph_tmp->SetTitle(Form("Amp, X = %.2f;y_laser [mm];Mean amp[%i]",x_range[jX],jCh));
             graph_tmp->Write();
             graph_tmp->Delete();
 
-            TGraph *graph_Corr_tmp = new TGraph(y_size, &y_range_REAL[0], &new_amp_value[0]);
+            TGraph *graph_Corr_tmp = new TGraph(y_size, &y_range[0], &new_amp_value[0]);
             graph_Corr_tmp->SetName(Form("Amp%iVsYLaser_Corr_X%i",jCh,jX));
             graph_Corr_tmp->SetTitle(Form("Amp corrected, X = %.2f;y_laser [mm];Mean amp[%i]",x_range[jX],jCh));
             graph_Corr_tmp->Write();
