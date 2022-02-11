@@ -193,11 +193,11 @@ void analysisMultiSensor(TString relative_path = "./"){
 
     for (int iY=0; iY<y_size; iY++){
         for (int iCh=0; iCh<n_channels; iCh++){
-            if (iCh<n_strips) graphAmpVsX_YConst_Vec[i]->Write();
-            graphAmpVsX_YConst_Vec[i]->Delete();
+            if (iCh<n_strips) graphAmpVsX_YConst_Vec[iCh + iY*n_channels]->Write();
+            graphAmpVsX_YConst_Vec[iCh + iY*n_channels]->Delete();
 
-            if (iCh<n_strips) graphAmpCorrVsX_YConst_Vec[i]->Write();
-            graphAmpCorrVsX_YConst_Vec[i]->Delete();
+            if (iCh<n_strips) graphAmpCorrVsX_YConst_Vec[iCh + iY*n_channels]->Write();
+            graphAmpCorrVsX_YConst_Vec[iCh + iY*n_channels]->Delete();
         }
     }
 
