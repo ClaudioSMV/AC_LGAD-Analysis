@@ -26,6 +26,7 @@ void analysisMultiSensor(TString relative_path = "./"){
     // std::vector<float> y_range_REAL = {14.30};
 
     const int n_channels = 6 + 2;
+    const int n_strips = 6;
     const int x_size = x_range.size();
     const int y_size = y_range.size();
 
@@ -107,6 +108,7 @@ void analysisMultiSensor(TString relative_path = "./"){
         TH2F *hTimeVsXY = new TH2F(Form("hTimeVsXY_Ch%i",iCh), Form("#DeltaTime Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + 0.5,
                                   y_size, y_range[0], y_range[y_size-1] + 0.25);
         hTimeVsXY->SetContour(20, contour);
+        hTimeVsXY->GetZaxis()->SetRangeUser(contour[0], contour[19]);
         hTimeVsXY_Vec.push_back(hTimeVsXY);
     }
 
@@ -146,7 +148,8 @@ void analysisMultiSensor(TString relative_path = "./"){
                 float amp_laser = hAmp_Vec[ch_laser + jY*n_channels + jX*y_size*n_channels]->GetMean();
                 new_amp_value[jY] = 100*mean/amp_laser;
 
-                float mean_time = hTime_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->GetMean();
+                float mean_time = 0;
+                if (hTime_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->GetEntries() > 60) mean_time = hTime_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->GetMean();
                 time_value[jY] = mean_time;
 
                 // if (new_amp_value[jY] > amp_max){
@@ -168,30 +171,34 @@ void analysisMultiSensor(TString relative_path = "./"){
                 graphAmpVsX_YConst_Vec[jCh + jY*n_channels]->SetPoint(jX, x_range[jX], amp_value[jY]);
                 graphAmpCorrVsX_YConst_Vec[jCh + jY*n_channels]->SetPoint(jX, x_range[jX], new_amp_value[jY]);
             }
-            
-            TGraph *graphAmpVsY_XConst_tmp = new TGraph(y_size, &y_range[0], &amp_value[0]);
-            graphAmpVsY_XConst_tmp->SetName(Form("Amp%iVsYLaser_X%i",jCh,jX));
-            graphAmpVsY_XConst_tmp->SetTitle(Form("Amp, X = %.2f;y_laser [mm];Mean amp[%i]",x_range[jX],jCh));
-            graphAmpVsY_XConst_tmp->Write();
-            graphAmpVsY_XConst_tmp->Delete();
 
-            TGraph *graphAmpCorrVsY_XConst_tmp = new TGraph(y_size, &y_range[0], &new_amp_value[0]);
-            graphAmpCorrVsY_XConst_tmp->SetName(Form("Amp%iVsYLaser_Corr_X%i",jCh,jX));
-            graphAmpCorrVsY_XConst_tmp->SetTitle(Form("Amp corrected, X = %.2f;y_laser [mm];Mean amp[%i]",x_range[jX],jCh));
-            graphAmpCorrVsY_XConst_tmp->Write();
-            graphAmpCorrVsY_XConst_tmp->Delete();
+            if (jCh<n_strips){
+                TGraph *graphAmpVsY_XConst_tmp = new TGraph(y_size, &y_range[0], &amp_value[0]);
+                graphAmpVsY_XConst_tmp->SetName(Form("Amp%iVsYLaser_X%i",jCh,jX));
+                graphAmpVsY_XConst_tmp->SetTitle(Form("Amp, X = %.2f;y_laser [mm];Mean amp[%i]",x_range[jX],jCh));
+                graphAmpVsY_XConst_tmp->Write();
+                graphAmpVsY_XConst_tmp->Delete();
+
+                TGraph *graphAmpCorrVsY_XConst_tmp = new TGraph(y_size, &y_range[0], &new_amp_value[0]);
+                graphAmpCorrVsY_XConst_tmp->SetName(Form("Amp%iVsYLaser_Corr_X%i",jCh,jX));
+                graphAmpCorrVsY_XConst_tmp->SetTitle(Form("Amp corrected, X = %.2f;y_laser [mm];Mean amp[%i]",x_range[jX],jCh));
+                graphAmpCorrVsY_XConst_tmp->Write();
+                graphAmpCorrVsY_XConst_tmp->Delete();
+            }
 
             amp_value.clear();
             new_amp_value.clear();
         }
     }
 
-    for (int i=0; i<y_size*n_channels; i++){
-        graphAmpVsX_YConst_Vec[i]->Write();
-        graphAmpVsX_YConst_Vec[i]->Delete();
+    for (int iY=0; iY<y_size; iY++){
+        for (int iCh=0; iCh<n_channels; iCh++){
+            if (iCh<n_strips) graphAmpVsX_YConst_Vec[i]->Write();
+            graphAmpVsX_YConst_Vec[i]->Delete();
 
-        graphAmpCorrVsX_YConst_Vec[i]->Write();
-        graphAmpCorrVsX_YConst_Vec[i]->Delete();
+            if (iCh<n_strips) graphAmpCorrVsX_YConst_Vec[i]->Write();
+            graphAmpCorrVsX_YConst_Vec[i]->Delete();
+        }
     }
 
     std::cout << "Histograms and TGraphs already created!" << std::endl;
