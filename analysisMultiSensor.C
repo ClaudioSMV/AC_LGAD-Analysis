@@ -39,12 +39,16 @@ void analysisMultiSensor(TString relative_path = "./"){
     chain->SetBranchAddress("LP2_20", LP2_20);
 
     std::vector<TH1F*> hAmp_Vec;
+    std::vector<TH1F*> hTime_Vec;
 
     for (int iX=0; iX<x_size; iX++){
         for (int iY=0; iY<y_size; iY++){
             for (int ich=0; ich<n_channels; ich++){
                 TH1F *hamp_tmp = new TH1F(Form("hAmp_X%iY%iCh%i",iX,iY,ich), Form("Amp, X = %.2f, Y = %.2f;amp[%i];Counts",x_range[iX],y_range[iY],ich), 220, 0, 220);
-                hAmp_Vec.push_back(hamp_tmp); // Histogram position = ich + iY*n_channels + iX*y_size*n_channels (n_channels = 6 almost always)
+                hAmp_Vec.push_back(hamp_tmp);
+                
+                TH1F *htime_tmp = new TH1F(Form("hTime_X%iY%iCh%i",iX,iY,ich), Form("Time Delta, X = %.2f, Y = %.2f;LP2_20[%i] - LP2_20[6];Counts",x_range[iX],y_range[iY],ich), 200, 4.e-8, 6.e-8);
+                hTime_Vec.push_back(htime_tmp);
             }
         }
     }
@@ -67,6 +71,10 @@ void analysisMultiSensor(TString relative_path = "./"){
         for (int ich=0; ich<n_channels; ich++){
             if (amp[ich]>0){
                 hAmp_Vec[ich + y_pos*n_channels + x_pos*y_size*n_channels]->Fill(amp[ich]);
+            }
+
+            if (LP2_20[ich]!=0 && LP2_20[6]!=0){
+                hTime_Vec[ich + y_pos*n_channels + x_pos*y_size*n_channels]->Fill(LP2_20[ich] - LP2_20[6]);
             }
         }
     }
@@ -127,7 +135,7 @@ void analysisMultiSensor(TString relative_path = "./"){
 
                 hAmpVsXY_Corr_Vec[jCh]->Fill(x_range[jX], y_range[jY], 100*mean/amp_laser);
 
-                // hAmp_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->Delete();
+                hAmp_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->Delete();
                 graph_y_const_Vec[jCh + jY*n_channels]->SetPoint(jX, x_range[jX], new_amp_value[jY]);
             }
             
