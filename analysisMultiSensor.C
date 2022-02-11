@@ -48,7 +48,7 @@ void analysisMultiSensor(TString relative_path = "./"){
                 TH1F *hamp_tmp = new TH1F(Form("hAmp_X%iY%iCh%i",iX,iY,ich), Form("Amp, X = %.2f, Y = %.2f;amp[%i];Counts",x_range[iX],y_range[iY],ich), 220, 0, 220);
                 hAmp_Vec.push_back(hamp_tmp);
                 
-                TH1F *htime_tmp = new TH1F(Form("hTime_X%iY%iCh%i",iX,iY,ich), Form("Time Delta, X = %.2f, Y = %.2f;LP2_20[%i] - LP2_20[6];Counts",x_range[iX],y_range[iY],ich), 200, 4.e-8, 6.e-8);
+                TH1F *htime_tmp = new TH1F(Form("hTime_X%iY%iCh%i",iX,iY,ich), Form("Time Delta, X = %.2f, Y = %.2f;LP2_20[%i] - LP2_20[6];Counts",x_range[iX],y_range[iY],ich), 300, 5.4e-8, 5.7e-8);
                 hTime_Vec.push_back(htime_tmp);
             }
         }
