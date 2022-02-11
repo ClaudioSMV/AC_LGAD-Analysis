@@ -146,7 +146,9 @@ void analysisMultiSensor(TString relative_path = "./"){
                 amp_value[jY] = mean;
 
                 float amp_laser = hAmp_Vec[ch_laser + jY*n_channels + jX*y_size*n_channels]->GetMean();
-                new_amp_value[jY] = 100*mean/amp_laser;
+
+                if (amp_laser>0.) new_amp_value[jY] = 100*mean/amp_laser;
+                else new_amp_value[jY] = 0;
 
                 float mean_time = 0;
                 if (hTime_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->GetEntries() > 60) mean_time = hTime_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->GetMean();
@@ -160,11 +162,14 @@ void analysisMultiSensor(TString relative_path = "./"){
                 // std::cout << "X="<< jX << "; CH=" << jCh << "; Y=" << jY << "; Amp="<< printf("%.2f",amp_laser);
                 // std::cout << "; AmpCorr=" << printf("%.2f",100*mean/amp_laser) << "; AmpLaser=" << printf("%.2f",amp_laser) << std::endl;
 
-                hAmpVsXY_Vec[jCh]->Fill(x_range[jX], y_range[jY], mean);
+                if (jCh!=6) hAmpVsXY_Vec[jCh]->Fill(x_range[jX], y_range[jY], mean);
+                else hAmpVsXY_Vec[jCh]->Delete();
 
-                hAmpVsXY_Corr_Vec[jCh]->Fill(x_range[jX], y_range[jY], 100*mean/amp_laser);
+                if (jCh!=6) hAmpVsXY_Corr_Vec[jCh]->Fill(x_range[jX], y_range[jY], 100*mean/amp_laser);
+                else hAmpVsXY_Corr_Vec[jCh]->Delete();
 
-                hTimeVsXY_Vec[jCh]->Fill(x_range[jX], y_range[jY], mean_time);
+                if (jCh<6) hTimeVsXY_Vec[jCh]->Fill(x_range[jX], y_range[jY], mean_time);
+                else hTimeVsXY_Vec[jCh]->Delete();
 
                 hAmp_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->Delete();
                 // hTime_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->Delete();
