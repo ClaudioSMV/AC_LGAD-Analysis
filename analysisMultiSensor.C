@@ -163,13 +163,13 @@ void analysisMultiSensor(TString relative_path = "./"){
                 // std::cout << "; AmpCorr=" << printf("%.2f",100*mean/amp_laser) << "; AmpLaser=" << printf("%.2f",amp_laser) << std::endl;
 
                 if (jCh!=6) hAmpVsXY_Vec[jCh]->Fill(x_range[jX], y_range[jY], mean);
-                else hAmpVsXY_Vec[jCh]->Delete();
+                else if (jX==0 && jY==0) hAmpVsXY_Vec[jCh]->Delete();
 
                 if (jCh!=6) hAmpVsXY_Corr_Vec[jCh]->Fill(x_range[jX], y_range[jY], 100*mean/amp_laser);
-                else hAmpVsXY_Corr_Vec[jCh]->Delete();
+                else if (jX==0 && jY==0) hAmpVsXY_Corr_Vec[jCh]->Delete();
 
                 if (jCh<6) hTimeVsXY_Vec[jCh]->Fill(x_range[jX], y_range[jY], mean_time);
-                else hTimeVsXY_Vec[jCh]->Delete();
+                else if (jX==0 && jY==0) hTimeVsXY_Vec[jCh]->Delete();
 
                 hAmp_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->Delete();
                 // hTime_Vec[jCh + jY*n_channels + jX*y_size*n_channels]->Delete();
