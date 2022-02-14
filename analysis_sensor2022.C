@@ -17,28 +17,32 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
     chain->SetBranchStatus("LP2_20",1);
 
     std::vector<float> x_range;
+    std::vector<float> x_range_REAL;
     std::vector<float> y_range;
     std::vector<float> y_range_REAL;
 
     // // Sensor: LaserMultiSnsr
     if (sensor_name=="LaserMultiSnsr"){
         x_range = {36.5, 37.0, 37.5, 38.0, 38.5, 39.0, 39.5};
+        x_range_REAL = {36.5, 37.0, 37.5, 38.0, 38.5, 39.0, 39.5};
         y_range = {14.00, 14.25, 14.50, 14.75, 15.00, 15.25, 15.50, 15.75, 16.00, 16.25, 16.50, 16.75, 17.00}; // this = real - 0.05
         y_range_REAL = {14.05, 14.30, 14.55, 14.80, 15.05, 15.30, 15.55, 15.80, 16.05, 16.30, 16.55, 16.80, 17.05};
     }
 
     // // Sensor: EIC1p0CM
     else if (sensor_name=="EIC1p0CM"){
-        x_range = {31.6, 32.1, 32.6, 33.1, 33.6, 34.1, 34.6, 35.1, 35.6, 36.1, 36.6, 37.1, 37.6, 38.1, 38.6, 39.1, 39.6, 40.1, 40.6, 41.1, 41.6, 42.1};
+        x_range = {31.5, 32.0, 32.5, 33.0, 33.5, 34.0, 34.5, 35.0, 35.5, 36.0, 36.5, 37.0, 37.5, 38.0, 38.5, 39.0, 39.5, 40.0, 40.5, 41.0, 41.5, 42.0};
+        x_range_REAL = {31.6, 32.1, 32.6, 33.1, 33.6, 34.1, 34.6, 35.1, 35.6, 36.1, 36.6, 37.1, 37.6, 38.1, 38.6, 39.1, 39.6, 40.1, 40.6, 41.1, 41.6, 42.1};
         y_range = {12.50, 12.75, 13.00, 13.25, 13.50, 13.75, 14.00, 14.25, 14.50, 14.75, 15.00, 15.25, 15.50, 15.75, 16.00, 16.25, 16.50, 16.75, 17.00, 17.25, 17.50};
         y_range_REAL = {12.60, 12.85, 13.10, 13.35, 13.60, 13.85, 14.10, 14.35, 14.60, 14.85, 15.10, 15.35, 15.60, 15.85, 16.10, 16.35, 16.60, 16.85, 17.10, 17.35, 17.60}; 
     }
 
     // // Test with run_scope9183.root and run_scope9184.root
     else if (sensor_name=="test"){
-        std::vector<float> x_range = {38.0};
-        std::vector<float> y_range = {14.25, 14.50}; // Real=this+0.05
-        std::vector<float> y_range_REAL = {14.30, 14.55};
+        x_range = {38.0};
+        x_range_REAL = {38.0};
+        y_range = {14.25, 14.50}; // Real=this+0.05
+        y_range_REAL = {14.30, 14.55};
     }
 
     const int n_channels = 6 + 2;
@@ -84,7 +88,7 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
             perc++;
         }
 
-        int x_pos = (int) round((x_laser - x_range[0])/0.5);
+        int x_pos = (int) round((x_laser - x_range_REAL[0])/0.5);
         int y_pos = (int) round((y_laser - y_range_REAL[0])/0.25);
 
         for (int ich=0; ich<n_channels; ich++){
@@ -93,7 +97,8 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
             }
 
             if (LP2_20[ich]!=0 && LP2_20[6]!=0){
-                hTime_Vec[ich + y_pos*n_channels + x_pos*y_size*n_channels]->Fill(LP2_20[ich] - LP2_20[6]);
+                if (ich!=6) hTime_Vec[ich + y_pos*n_channels + x_pos*y_size*n_channels]->Fill(LP2_20[ich] - LP2_20[6]);
+                else hTime_Vec[ich + y_pos*n_channels + x_pos*y_size*n_channels]->Fill(LP2_20[6]);
             }
         }
     }
