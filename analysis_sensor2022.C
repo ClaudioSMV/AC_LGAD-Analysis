@@ -20,6 +20,7 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
     std::vector<float> x_range_REAL;
     std::vector<float> y_range;
     std::vector<float> y_range_REAL;
+    float amp_corr_val=0;
 
     // // Sensor: LaserMultiSnsr
     if (sensor_name=="LaserMultiSnsr"){
@@ -45,6 +46,7 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
         x_range_REAL = {38.0};
         y_range = {14.25, 14.50}; // Real=this+0.05
         y_range_REAL = {14.30, 14.55};
+	amp_corr_val = 100.;
     }
 
     const int n_channels = 6 + 2;
@@ -52,7 +54,7 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
     const int x_size = x_range.size();
     const int y_size = y_range.size();
     const float t_min = 54.5; // in [ns]
-    const float t_max = 57.5; // in [ns]
+    const float t_max = 56.5; // in [ns]
 
     // // // // //
 
@@ -73,7 +75,7 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
                 TH1F *hamp_tmp = new TH1F(Form("hAmp_X%iY%iCh%i",iX,iY,ich), Form("Amp, X = %.2f, Y = %.2f;amp[%i];Counts",x_range[iX],y_range[iY],ich), 220, 0, 220);
                 hAmp_Vec.push_back(hamp_tmp);
                 
-                TH1F *htime_tmp = new TH1F(Form("hTime_X%iY%iCh%i",iX,iY,ich), Form("Time Delta, X = %.2f, Y = %.2f;LP2_20[%i] - LP2_20[6] [ns];Counts",x_range[iX],y_range[iY],ich), 300, t_min, t_max);
+                TH1F *htime_tmp = new TH1F(Form("hTime_X%iY%iCh%i",iX,iY,ich), Form("Time Delta, X = %.2f, Y = %.2f;LP2_20[%i] - LP2_20[6] [ns];Counts",x_range[iX],y_range[iY],ich), 400, t_min, t_max);
                 hTime_Vec.push_back(htime_tmp);
             }
         }
@@ -174,7 +176,7 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
 
                 float amp_laser = hAmp_Vec[ch_laser + jY*n_channels + jX*y_size*n_channels]->GetMean();
 
-                if (amp_laser>0.) new_amp_value[jY] = 100*mean/amp_laser;
+                if (amp_laser>0.) new_amp_value[jY] = amp_corr_val*mean/amp_laser;
                 else new_amp_value[jY] = 0;
 
                 float mean_time = 0;
