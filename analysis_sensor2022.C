@@ -27,6 +27,7 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
         x_range_REAL = {36.5, 37.0, 37.5, 38.0, 38.5, 39.0, 39.5};
         y_range = {14.00, 14.25, 14.50, 14.75, 15.00, 15.25, 15.50, 15.75, 16.00, 16.25, 16.50, 16.75, 17.00}; // this = real - 0.05
         y_range_REAL = {14.05, 14.30, 14.55, 14.80, 15.05, 15.30, 15.55, 15.80, 16.05, 16.30, 16.55, 16.80, 17.05};
+        amp_corr_val = 120.;
     }
 
     // // Sensor: EIC1p0CM
@@ -34,7 +35,8 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
         x_range = {31.5, 32.0, 32.5, 33.0, 33.5, 34.0, 34.5, 35.0, 35.5, 36.0, 36.5, 37.0, 37.5, 38.0, 38.5, 39.0, 39.5, 40.0, 40.5, 41.0, 41.5, 42.0};
         x_range_REAL = {31.6, 32.1, 32.6, 33.1, 33.6, 34.1, 34.6, 35.1, 35.6, 36.1, 36.6, 37.1, 37.6, 38.1, 38.6, 39.1, 39.6, 40.1, 40.6, 41.1, 41.6, 42.1};
         y_range = {12.50, 12.75, 13.00, 13.25, 13.50, 13.75, 14.00, 14.25, 14.50, 14.75, 15.00, 15.25, 15.50, 15.75, 16.00, 16.25, 16.50, 16.75, 17.00, 17.25, 17.50};
-        y_range_REAL = {12.60, 12.85, 13.10, 13.35, 13.60, 13.85, 14.10, 14.35, 14.60, 14.85, 15.10, 15.35, 15.60, 15.85, 16.10, 16.35, 16.60, 16.85, 17.10, 17.35, 17.60}; 
+        y_range_REAL = {12.60, 12.85, 13.10, 13.35, 13.60, 13.85, 14.10, 14.35, 14.60, 14.85, 15.10, 15.35, 15.60, 15.85, 16.10, 16.35, 16.60, 16.85, 17.10, 17.35, 17.60};
+        amp_corr_val = 67.;
     }
 
     // // Test with run_scope9183.root and run_scope9184.root
@@ -49,6 +51,8 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
     const int n_strips = 6;
     const int x_size = x_range.size();
     const int y_size = y_range.size();
+    const float t_min = 54.5; // in [ns]
+    const float t_max = 57.5; // in [ns]
 
     // // // // //
 
@@ -69,7 +73,7 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
                 TH1F *hamp_tmp = new TH1F(Form("hAmp_X%iY%iCh%i",iX,iY,ich), Form("Amp, X = %.2f, Y = %.2f;amp[%i];Counts",x_range[iX],y_range[iY],ich), 220, 0, 220);
                 hAmp_Vec.push_back(hamp_tmp);
                 
-                TH1F *htime_tmp = new TH1F(Form("hTime_X%iY%iCh%i",iX,iY,ich), Form("Time Delta, X = %.2f, Y = %.2f;LP2_20[%i] - LP2_20[6];Counts",x_range[iX],y_range[iY],ich), 300, 5.45e-8, 5.75e-8);
+                TH1F *htime_tmp = new TH1F(Form("hTime_X%iY%iCh%i",iX,iY,ich), Form("Time Delta, X = %.2f, Y = %.2f;LP2_20[%i] - LP2_20[6] [ns];Counts",x_range[iX],y_range[iY],ich), 300, t_min, t_max);
                 hTime_Vec.push_back(htime_tmp);
             }
         }
@@ -97,8 +101,8 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
             }
 
             if (LP2_20[ich]!=0 && LP2_20[6]!=0){
-                if (ich!=6) hTime_Vec[ich + y_pos*n_channels + x_pos*y_size*n_channels]->Fill(LP2_20[ich] - LP2_20[6]);
-                else hTime_Vec[ich + y_pos*n_channels + x_pos*y_size*n_channels]->Fill(LP2_20[6]);
+                hTime_Vec[ich + y_pos*n_channels + x_pos*y_size*n_channels]->Fill((LP2_20[ich] - LP2_20[6])*1.e9); // if (ich!=6) 
+                // else hTime_Vec[ich + y_pos*n_channels + x_pos*y_size*n_channels]->Fill(LP2_20[6]);
             }
         }
     }
@@ -114,7 +118,7 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
 
     double contour[20];
     for (int i=0; i<20; i++){
-        contour[i] = 5.4e-8 + 0.2e-8*i/19;
+        contour[i] = t_min + (t_max-t_min)*i/19;
     }
 
     for (int iCh=0; iCh<n_channels; iCh++){

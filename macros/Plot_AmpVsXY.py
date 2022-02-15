@@ -13,30 +13,41 @@ myStyle.ForceStyle()
 
 # Construct the argument parser
 parser = optparse.OptionParser("usage: %prog [options]\n")
-parser.add_option('-f', dest='file', default = "MultiSensor.root", help="File name (+ path from ../)")
-parser.add_option('-c','--correction', action="store_false", dest='correction', default = True, help="Apply [default] or not factor correction to amp")
+parser.add_option('-f', dest='file', default = "Output_LaserMultiSnsr.root", help="File name (+ path from ../)")
+parser.add_option('-n','--nocorrection', action="store_true", dest='nocorrection', default = False, help="Apply [default] or not factor correction to amp")
 # parser.add_option('-b','--biasvolt', dest='biasvolt', default = 220, help="Bias Voltage value in [V]")
 options, args = parser.parse_args()
 
 file = options.file
-correction = options.correction
+nocorrection = options.nocorrection
 # bias = options.biasvolt
 
-if correction:
+if not nocorrection:
     corr_title = "_Corr"
 else:
     corr_title = ""
 
 inputfile = TFile("../"+file,"READ")
 
-#Define histo names
-
 color = [416+2, 432+2, 600, 880, 632, 400+2]
 
 canvas = TCanvas("cv", "cv", 1000, 800)
-for iX in range(7):
-    htmp = TH1F("htmp", "Amplitude"+corr_title+" Vs Y_laser, X["+str(iX)+"];y_laser [mm];amp"+corr_title+" [mV]", 1, 14.0, 17.1)
-    htmp.GetYaxis().SetRangeUser(0., 180.)
+
+htmp = inputfile.Get("hAmpVsXY_Ch0").Clone("htmp")
+ymin = htmp.GetYaxis().GetXmin() - 0.25
+ymax = htmp.GetYaxis().GetXmax()
+nxbins = htmp.GetXaxis().GetNbins()
+htmp.Delete()
+
+if ("MultiSnsr" in file):
+    amp_max = 180.
+elif ("EIC" in file):
+    amp_max = 250.
+
+for iX in range(nxbins):
+    # htmp.SetTitle("Amplitude"+corr_title+" Vs Y_laser, X["+str(iX)+"];y_laser [mm];amp"+corr_title+" [mV]")
+    htmp = TH1F("htmp", "Amplitude"+corr_title+" Vs Y_laser, X["+str(iX)+"];y_laser [mm];amp"+corr_title+" [mV]", 1, ymin, ymax)
+    htmp.GetYaxis().SetRangeUser(0., amp_max)
     htmp.Draw("AXIS")
     list_hAmpVsY = []
     legend = TLegend(2*myStyle.GetMargin()+0.02,1-myStyle.GetMargin()-0.02-0.1,1-myStyle.GetMargin()-0.02,1-myStyle.GetMargin()-0.02)
@@ -56,5 +67,6 @@ for iX in range(7):
         list_hAmpVsY[iCh].Draw("LP")
     legend.Draw()
     canvas.SaveAs("AmpVsY"+corr_title+"_X"+str(iX)+".gif")
+    canvas.Clear()
     htmp.Delete()
     # canvas.Delete()
