@@ -21,6 +21,7 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
     std::vector<float> y_range;
     std::vector<float> y_range_REAL;
     float amp_corr_val=0;
+    float x_step = 0.5, y_step = 0.25;
 
     // // Sensor: LaserMultiSnsr
     if (sensor_name=="LaserMultiSnsr"){
@@ -49,6 +50,8 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
         y_range = {13.50, 13.75, 14.00, 14.25, 14.50, 14.75, 15.00, 15.25, 15.50, 15.75, 16.00, 16.25, 16.50, 16.75, 17.00, 17.25, 17.50};
         y_range_REAL = {13.55, 13.80, 14.05, 14.30, 14.55, 14.80, 15.05, 15.30, 15.55, 15.80, 16.05, 16.30, 16.55, 16.80, 17.05, 17.30, 17.55};
         amp_corr_val = 100.; // UPDATE!
+        x_step = 1.0;
+        y_step = 0.25;
     }
 
     // // Test with run_scope9183.root and run_scope9184.root
@@ -57,7 +60,7 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
         x_range_REAL = {38.0};
         y_range = {14.25, 14.50}; // Real=this+0.05
         y_range_REAL = {14.30, 14.55};
-	amp_corr_val = 100.;
+	    amp_corr_val = 100.;
     }
 
     const int n_channels = 6 + 2;
