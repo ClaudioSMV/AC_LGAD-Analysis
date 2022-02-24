@@ -156,6 +156,8 @@ for iCh in range(6):
 print("xMin: %.2f, %.2f, %.2f, %.2f, %.2f, %.2f" % (x_minimum_pCh[0], x_minimum_pCh[1], x_minimum_pCh[2], x_minimum_pCh[3], x_minimum_pCh[4], x_minimum_pCh[5]))
 print("yMin: %.2f, %.2f, %.2f, %.2f, %.2f, %.2f" % (y_minimum_pCh[0], y_minimum_pCh[1], y_minimum_pCh[2], y_minimum_pCh[3], y_minimum_pCh[4], y_minimum_pCh[5]))
 
+output = TFile("TimePlots_"+myStyle.GetSensorName(file)+".root","RECREATE")
+
 ## Time Vs Y, per X=constant bin with Time set to zero per channel
 for iX in range(nxbins):
     htmp = TH1F("htmp", "#DeltaTime_SetZero Vs Y_laser, X="+str(xy_range[0][iX])+" [mm];y_laser [mm];#Deltat[ns]", 1, ymin, ymax)
@@ -170,7 +172,7 @@ for iX in range(nxbins):
     legend.SetFillColor(kWhite) 
     for iCh in range(6):
         strip_position = myStyle.ChannelPos(file, iCh)
-        hTimeVsY = inputfile.Get("hTimeVsXY_Ch"+str(iCh)).ProjectionY("hTimeVsY_Ch"+str(iCh),iX+1,iX+1)
+        hTimeVsY = inputfile.Get("hTimeVsXY_Ch"+str(iCh)).ProjectionY("hTimeVsY_Ch"+str(iCh)+"_binX"+str(iX+1),iX+1,iX+1)
         for iY in range(nybins):
             time_value = hTimeVsY.GetBinContent(iY+1)
             hTimeVsY.SetBinContent(iY+1, time_value - y_minimum_pCh[iCh])
@@ -184,6 +186,9 @@ for iX in range(nxbins):
     canvas.Clear()
     htmp.Delete()
     # canvas.Delete()
+
+output.Write()
+output.Close()
 
 ## Time Vs X, per Y=constant bin with Time set to zero per channel
 for iY in range(nybins):

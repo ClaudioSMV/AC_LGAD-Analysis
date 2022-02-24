@@ -78,9 +78,15 @@ def GetSensorRange(file):
     if "LaserMultiSnsr" in file:
         xy_range = [[36.5, 37.0, 37.5, 38.0, 38.5, 39.0, 39.5], [14.05, 14.30, 14.55, 14.80, 15.05, 15.30, 15.55, 15.80, 16.05, 16.30, 16.55, 16.80, 17.05]]
 
-    ## Sensor: EIC1p0CM
-    elif "EIC1p0CM" in file:
+    ## Sensor: EIC1p0CP
+    elif "EIC1p0CP" in file:
         xy_range = [[31.6, 32.1, 32.6, 33.1, 33.6, 34.1, 34.6, 35.1, 35.6, 36.1, 36.6, 37.1, 37.6, 38.1, 38.6, 39.1, 39.6, 40.1, 40.6, 41.1, 41.6, 42.1], [12.60, 12.85, 13.10, 13.35, 13.60, 13.85, 14.10, 14.35, 14.60, 14.85, 15.10, 15.35, 15.60, 15.85, 16.10, 16.35, 16.60, 16.85, 17.10, 17.35, 17.60]]
+
+    ## Sensor: EIC2p5CP
+    elif "EIC2p5CP" in file:
+        xy_range = [[], [13.55, 13.80, 14.05, 14.30, 14.55, 14.80, 15.05, 15.30, 15.55, 15.80, 16.05, 16.30, 16.55, 16.80, 17.05, 17.30, 17.55]]
+        for i in range(27):
+            xy_range[0].append(24.0 + i*1.0)
 
     ## Test with run_scope9183.root and run_scope9184.root
     else:
@@ -93,8 +99,13 @@ def ChannelPos(file, channel):
     if "LaserMultiSnsr" in file:
         y_pos = [[1,2], [2,3], [4,5], [5,6], [6], [7]]
 
-    ## Sensor: EIC1p0CM
-    elif "EIC1p0CM" in file:
+    ## Sensor: EIC1p0CP
+    elif "EIC1p0CP" in file:
+        y_pos = [[2,3], [4,5], [6,7], [8,9], [16,17], [18,19]]
+
+    ## Sensor: EIC2p5CP
+    ## UPDATE!
+    elif "EIC2p5CP" in file:
         y_pos = [[2,3], [4,5], [6,7], [8,9], [16,17], [18,19]]
 
     ## Test with run_scope9183.root and run_scope9184.root
@@ -102,3 +113,22 @@ def ChannelPos(file, channel):
         y_pos = [[1,2], [2,3], [4,5], [5,6], [6], [7]]
 
     return y_pos[channel]
+
+def GetSensorName(file):
+    ## Sensor: LaserMultiSnsr
+    if "LaserMultiSnsr" in file:
+        sensor_name = "MultiSensor"
+
+    ## Sensor: EIC1p0CP
+    elif "EIC1p0CP" in file:
+        sensor_name = "EIC1p0CP"
+
+    ## Sensor: EIC2p5CP
+    elif "EIC2p5CP" in file:
+        sensor_name = "EIC2p5CP"
+
+    ## Test with run_scope9183.root and run_scope9184.root
+    else:
+        sensor_name = "Test"
+
+    return sensor_name
