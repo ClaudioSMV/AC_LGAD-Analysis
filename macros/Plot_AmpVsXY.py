@@ -62,10 +62,10 @@ xmax = htmp.GetXaxis().GetXmax()
 nybins = htmp.GetYaxis().GetNbins()
 htmp.Delete()
 
-# if ("MultiSnsr" in file):
-#     amp_max = 180.
-# elif ("EIC" in file):
-#     amp_max = 250.
+if ("MultiSnsr" in file):
+    amp_max = 180.
+elif ("EIC" in file):
+    amp_max = 250.
 
 gStyle.SetOptTitle()
 xy_range = myStyle.GetSensorRange(file)
@@ -74,7 +74,7 @@ xy_range = myStyle.GetSensorRange(file)
 for iX in range(nxbins):
     # htmp.SetTitle("Amplitude"+corr_title+" Vs Y_laser, X["+str(iX)+"];y_laser [mm];amp"+corr_title+" [mV]")
     htmp = TH1F("htmp", "Amp"+corr_title+" Vs Y_laser, X="+str(xy_range[0][iX])+" [mm];y_laser [mm];Amp"+corr_title+" [mV]", 1, ymin, ymax)
-    htmp.GetYaxis().SetRangeUser(0.0, 300.0) # Check if these values can be retrieved with ~ htmp.GetZaxis().GetXmax()
+    htmp.GetYaxis().SetRangeUser(0.0, amp_max) # Check if these values can be retrieved with ~ htmp.GetZaxis().GetXmax()
     htmp.Draw("AXIS")
     # htmp.Draw("X+")
     # ReverseYAxis(htmp)
@@ -104,7 +104,7 @@ for iX in range(nxbins):
 ## Time Vs X, per Y=constant bin
 for iY in range(nybins):
     htmp = TH1F("htmp", "Amp"+corr_title+" Vs X_laser, Y="+str(xy_range[1][iY])+" [mm];x_laser [mm];Amp"+corr_title+" [mV]", 1, xmin, xmax)
-    htmp.GetYaxis().SetRangeUser(0.0, 300.0) # Check if these values can be retrieved with ~ htmp.GetZaxis().GetXmax()
+    htmp.GetYaxis().SetRangeUser(0.0, amp_max) # Check if these values can be retrieved with ~ htmp.GetZaxis().GetXmax()
     htmp.Draw("AXIS")
     # htmp.Draw("X+")
     # ReverseYAxis(htmp)
@@ -134,7 +134,7 @@ for iY in range(nybins):
 ## Time Vs X, per channel (all Y values in a single plot for that channel)
 for iCh in range(6):
     htmp = TH1F("htmp", "Amp"+corr_title+" Vs X_laser, Channel "+str(iCh)+";x_laser [mm];Amp"+corr_title+" [mV]", 1, xmin, xmax)
-    htmp.GetYaxis().SetRangeUser(0.0, 300.0) # Check if these values can be retrieved with ~ htmp.GetZaxis().GetXmax()
+    htmp.GetYaxis().SetRangeUser(0.0, amp_max) # Check if these values can be retrieved with ~ htmp.GetZaxis().GetXmax()
     htmp.Draw("AXIS")
     legend = TLegend(2*myStyle.GetMargin()+0.02,1-myStyle.GetMargin()-0.02-0.2,1-myStyle.GetMargin()-0.02,1-myStyle.GetMargin()-0.02)
     legend.SetNColumns(4)
@@ -147,8 +147,9 @@ for iCh in range(6):
     strip_position = myStyle.ChannelPos(file, iCh)
     for iY in range(1, nybins-1):
         hAmpVsX = inputfile.Get("hAmpVsXY"+corr_title+"_Ch"+str(iCh)).ProjectionX("hAmpVsX"+corr_title+"_Ch"+str(iCh)+str(iY),iY+1,iY+1)
-        if iY in strip_position: hAmpVsX.SetMarkerStyle(26)
-        elif ((iY-1) in strip_position) or ((iY+1) in strip_position): hAmpVsX.SetMarkerStyle(25)
+        if (iY == (min(strip_position)-1)): hAmpVsX.SetMarkerStyle(25)
+        elif iY in strip_position: hAmpVsX.SetMarkerStyle(26)
+        elif (iY == (max(strip_position)+1)): hAmpVsX.SetMarkerStyle(25)
         else: hAmpVsX.SetMarkerStyle(21)
         col = TColor.GetColor(color_rgb[iCh][0] + (iY-1)*color_chg[iCh][0], color_rgb[iCh][1] + (iY-1)*color_chg[iCh][1], color_rgb[iCh][2] + (iY-1)*color_chg[iCh][2])
         hAmpVsX.SetLineColor(col)

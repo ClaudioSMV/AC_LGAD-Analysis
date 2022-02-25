@@ -208,8 +208,9 @@ for iY in range(nybins):
         for iX in range(nxbins):
             time_value = hTimeVsX.GetBinContent(iX+1)
             hTimeVsX.SetBinContent(iX+1, time_value - x_minimum_pCh[iCh])
-        if iY in strip_position: hTimeVsX.SetMarkerStyle(26)
-        elif ((iY-1) in strip_position) or ((iY+1) in strip_position): hTimeVsX.SetMarkerStyle(25)
+        if (iY == (min(strip_position)-1)): hTimeVsX.SetMarkerStyle(25)
+        elif iY in strip_position: hTimeVsX.SetMarkerStyle(26)
+        elif (iY == (max(strip_position)+1)): hTimeVsX.SetMarkerStyle(25)
         else: hTimeVsX.SetMarkerStyle(21)
         hTimeVsX.SetLineColor(color[iCh])
         hTimeVsX.SetLineWidth(3)
@@ -240,8 +241,9 @@ for iCh in range(6):
         for iX in range(nxbins):
             time_value = hTimeVsX.GetBinContent(iX+1)
             hTimeVsX.SetBinContent(iX+1, time_value - x_minimum_pCh[iCh])
-        if iY in strip_position: hTimeVsX.SetMarkerStyle(26)
-        elif ((iY-1) in strip_position) or ((iY+1) in strip_position): hTimeVsX.SetMarkerStyle(25)
+        if (iY == (min(strip_position)-1)): hTimeVsX.SetMarkerStyle(25)
+        elif iY in strip_position: hTimeVsX.SetMarkerStyle(26)
+        elif (iY == (max(strip_position)+1)): hTimeVsX.SetMarkerStyle(25)
         else: hTimeVsX.SetMarkerStyle(21)
         hTimeVsX.SetLineColor(color_channel[iCh]-iY-1)
         hTimeVsX.SetLineWidth(3)
