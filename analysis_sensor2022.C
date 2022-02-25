@@ -108,8 +108,8 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
             perc++;
         }
 
-        int x_pos = (int) round((x_laser - x_range_REAL[0])/0.5);
-        int y_pos = (int) round((y_laser - y_range_REAL[0])/0.25);
+        int x_pos = (int) round((x_laser - x_range_REAL[0])/x_step);
+        int y_pos = (int) round((y_laser - y_range_REAL[0])/y_step);
 
         for (int ich=0; ich<n_channels; ich++){
             if (amp[ich]>0){
@@ -138,16 +138,16 @@ void analysis_sensor2022(TString relative_path_input = "./", TString sensor_name
     }
 
     for (int iCh=0; iCh<n_channels; iCh++){
-        TH2F *hAmpVsXY = new TH2F(Form("hAmpVsXY_Ch%i",iCh), Form("Amplitude Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + 0.5,
-                                  y_size, y_range[0], y_range[y_size-1] + 0.25);
+        TH2F *hAmpVsXY = new TH2F(Form("hAmpVsXY_Ch%i",iCh), Form("Amplitude Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + x_step,
+                                  y_size, y_range[0], y_range[y_size-1] + y_step);
         hAmpVsXY_Vec.push_back(hAmpVsXY);
 
-        TH2F *hAmpVsXY_Corr = new TH2F(Form("hAmpVsXY_Corr_Ch%i",iCh), Form("Amplitude corrected Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + 0.5,
-                                  y_size, y_range[0], y_range[y_size-1] + 0.25);
+        TH2F *hAmpVsXY_Corr = new TH2F(Form("hAmpVsXY_Corr_Ch%i",iCh), Form("Amplitude corrected Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + x_step,
+                                  y_size, y_range[0], y_range[y_size-1] + y_step);
         hAmpVsXY_Corr_Vec.push_back(hAmpVsXY_Corr);
 
-        TH2F *hTimeVsXY = new TH2F(Form("hTimeVsXY_Ch%i",iCh), Form("#DeltaTime Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + 0.5,
-                                  y_size, y_range[0], y_range[y_size-1] + 0.25);
+        TH2F *hTimeVsXY = new TH2F(Form("hTimeVsXY_Ch%i",iCh), Form("#DeltaTime Ch %i;x_laser [mm];y_laser [mm]",iCh), x_size, x_range[0], x_range[x_size-1] + x_step,
+                                  y_size, y_range[0], y_range[y_size-1] + y_step);
         hTimeVsXY->SetContour(20, contour);
         hTimeVsXY->GetZaxis()->SetRangeUser(contour[0], contour[19]);
         hTimeVsXY_Vec.push_back(hTimeVsXY);
